@@ -11,7 +11,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
 
-  <!-- Navbar Superior -->
+  <!-- Navbar Superior com Menu de Navegação -->
   <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -21,9 +21,26 @@
           <span class="text-[10px] text-amber-400 uppercase tracking-widest block">Dashboard Executivo & Analytics</span>
         </div>
       </div>
+      
+      <!-- Menu de Navegação (Desktop) -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
+        <a href="index.html" class="text-amber-400 hover:text-white transition-colors">Dashboard</a>
+        <a href="obras.html" class="hover:text-amber-400 transition-colors">Obras</a>
+        <a href="sobre.html" class="hover:text-amber-400 transition-colors">Sobre Nós</a>
+        <a href="contacto.html" class="hover:text-amber-400 transition-colors">Contactos</a>
+      </nav>
+
       <div class="flex items-center gap-3">
-        <span class="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">● Sistema Online (Modo Instantâneo)</span>
+        <span class="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">● Sistema Online</span>
       </div>
+    </div>
+
+    <!-- Submenu Mobile -->
+    <div class="md:hidden flex justify-around py-2 bg-slate-900 border-t border-slate-800 text-xs font-semibold">
+      <a href="index.html" class="text-amber-400">Dashboard</a>
+      <a href="obras.html" class="text-slate-300">Obras</a>
+      <a href="sobre.html" class="text-slate-300">Sobre Nós</a>
+      <a href="contacto.html" class="text-slate-300">Contactos</a>
     </div>
   </header>
 
@@ -35,11 +52,11 @@
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
         <p class="text-slate-400 text-sm font-medium">Estado da Empresa</p>
         <h3 class="text-2xl font-bold text-white mt-1">Operacional</h3>
-        <p class="text-emerald-400 text-sm mt-2 flex items-center gap-1">● Todos os sistemas ativos</p>
+        <p class="text-emerald-400 text-sm mt-2">● Todos os sistemas ativos</p>
       </div>
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
         <p class="text-slate-400 text-sm font-medium">Obras / Projetos Ativos</p>
-        <h3 class="text-2xl font-bold text-amber-400 mt-1">4 Projetos</h3>
+        <h3 id="contador-projetos" class="text-2xl font-bold text-amber-400 mt-1">-</h3>
         <p class="text-slate-400 text-xs mt-2">Monitorização em tempo real</p>
       </div>
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
@@ -49,93 +66,127 @@
       </div>
     </div>
 
-    <!-- Grelha de Projetos Dinâmicos -->
+    <!-- Grelha de Projetos e Estruturas -->
     <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
       <span>🏗️</span> Projetos e Parques em Execução
     </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      <!-- Projeto 1 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all">
-        <div class="h-48 overflow-hidden relative">
-          <img src="https://images.unsplash.com/photo-1541888946425-d0fbb18f26f2?auto=format&fit=crop&w=600&q=80" alt="Infraestrutura Viária Sul" class="w-full h-full object-cover">
-          <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-amber-400 border border-slate-700">
-            Em Curso
-          </div>
-        </div>
-        <div class="p-6">
-          <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Projeto 205</span>
-          <h3 class="text-lg font-bold text-white mt-1">Infraestrutura Viária Sul</h3>
-          <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center">
-            <span class="text-slate-400 text-sm">Valor do Contrato</span>
-            <span class="text-emerald-400 font-bold text-base">€1.800.000</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Projeto 2 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all">
-        <div class="h-48 overflow-hidden relative">
-          <img src="https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80" alt="Residencial Vista Verde" class="w-full h-full object-cover">
-          <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-emerald-400 border border-slate-700">
-            Concluído
-          </div>
-        </div>
-        <div class="p-6">
-          <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Projeto 206</span>
-          <h3 class="text-lg font-bold text-white mt-1">Residencial Vista Verde</h3>
-          <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center">
-            <span class="text-slate-400 text-sm">Valor do Contrato</span>
-            <span class="text-emerald-400 font-bold text-base">€2.200.000</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Projeto 3 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all">
-        <div class="h-48 overflow-hidden relative">
-          <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80" alt="Edifício Corporate Center" class="w-full h-full object-cover">
-          <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-amber-400 border border-slate-700">
-            Em Curso
-          </div>
-        </div>
-        <div class="p-6">
-          <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Projeto 207</span>
-          <h3 class="text-lg font-bold text-white mt-1">Edifício Corporate Center</h3>
-          <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center">
-            <span class="text-slate-400 text-sm">Valor do Contrato</span>
-            <span class="text-emerald-400 font-bold text-base">€3.900.000</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Projeto 4 -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all">
-        <div class="h-48 overflow-hidden relative">
-          <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80" alt="Remodelação Hospitalar" class="w-full h-full object-cover">
-          <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-amber-400 border border-slate-700">
-            Em Curso
-          </div>
-        </div>
-        <div class="p-6">
-          <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Projeto 208</span>
-          <h3 class="text-lg font-bold text-white mt-1">Remodelação Hospitalar</h3>
-          <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center">
-            <span class="text-slate-400 text-sm">Valor do Contrato</span>
-            <span class="text-emerald-400 font-bold text-base">€2.700.000</span>
-          </div>
-        </div>
-      </div>
-
+    <div id="grid-projetos" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      <!-- Projetos carregados via JS -->
     </div>
 
-    <!-- Botão de Ação -->
-    <div class="mt-10 text-center">
-      <button onclick="alert('Dashboard da Vanguarda Engenharia & Obras S.A. atualizado com sucesso!')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-8 py-3 rounded-xl transition-all shadow-lg shadow-amber-500/10 cursor-pointer">
-        ✨ Sincronizar Estado Operacional
-      </button>
+    <!-- Grelha de Ambientes e Interiores Executivos -->
+    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+      <span>🏢</span> Ambientes e Interiores Corporativos
+    </h2>
+    <div id="grid-ambientes" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Ambientes carregados via JS -->
     </div>
+
   </main>
 
+  <script>
+    // LISTA DE PROJETOS PRINCIPAIS
+    const meusProjetos = [
+      {
+        id: "205",
+        nome: "Infraestrutura Viária Sul",
+        estado: "Em Curso",
+        valor: "€1.800.000",
+        imagem: "https://images.unsplash.com/photo-1541888946425-d0fbb18f26f2?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "206",
+        nome: "Residencial Vista Verde",
+        estado: "Concluído",
+        valor: "€2.200.000",
+        imagem: "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "207",
+        nome: "Edifício Corporate Center",
+        estado: "Em Curso",
+        valor: "€3.900.000",
+        imagem: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "208",
+        nome: "Remodelação Hospitalar",
+        estado: "Em Curso",
+        valor: "€2.700.000",
+        imagem: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80"
+      }
+    ];
+
+    // LISTA DE AMBIENTES E INTERIORES
+    const meusAmbientes = [
+      {
+        titulo: "Escritório Executivo Premium",
+        tipo: "Corporativo",
+        descricao: "Design moderno com acabamentos em madeira nobre e iluminação LED integrada.",
+        imagem: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        titulo: "Receção & Atrio Central",
+        tipo: "Interiores",
+        descricao: "Espaço amplo com pé-direito duplo, revestimentos acústicos e controlo de acessos.",
+        imagem: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        titulo: "Sala de Reuniões de Direção",
+        tipo: "Tecnologia",
+        descricao: "Equipada com sistemas avançados de videoconferência e isolamento acústico superior.",
+        imagem: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=600&q=80"
+      }
+    ];
+
+    // Desenhar Projetos
+    const containerProjetos = document.getElementById('grid-projetos');
+    document.getElementById('contador-projetos').innerText = meusProjetos.length + ' Projetos';
+    
+    containerProjetos.innerHTML = '';
+    meusProjetos.forEach(p => {
+      const corBadge = p.estado === 'Concluído' ? 'text-emerald-400' : 'text-amber-400';
+      containerProjetos.innerHTML += `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all">
+          <div class="h-48 overflow-hidden relative">
+            <img src="${p.imagem}" alt="${p.nome}" class="w-full h-full object-cover">
+            <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold ${corBadge} border border-slate-700">
+              ${p.estado}
+            </div>
+          </div>
+          <div class="p-6">
+            <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Projeto 0${p.id}</span>
+            <h3 class="text-lg font-bold text-white mt-1">${p.nome}</h3>
+            <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center">
+              <span class="text-slate-400 text-sm">Valor do Contrato</span>
+              <span class="text-emerald-400 font-bold text-base">${p.valor}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    // Desenhar Ambientes
+    const containerAmbientes = document.getElementById('grid-ambientes');
+    containerAmbientes.innerHTML = '';
+    meusAmbientes.forEach(a => {
+      containerAmbientes.innerHTML += `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all flex flex-col">
+          <div class="h-44 overflow-hidden relative">
+            <img src="${a.imagem}" alt="${a.titulo}" class="w-full h-full object-cover">
+            <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-semibold text-amber-400 border border-slate-700 uppercase tracking-wider">
+              ${a.tipo}
+            </span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white">${a.titulo}</h3>
+              <p class="text-slate-400 text-xs mt-2 leading-relaxed">${a.descricao}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  </script>
 </body>
 </html>
