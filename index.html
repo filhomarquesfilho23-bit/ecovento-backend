@@ -2,25 +2,115 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>EcoVento Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoVento - Painel de Controlo</title>
+  <style>
+    :root {
+      --primary: #059669;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { color: #10b981; font-size: 1.8rem; text-align: center; }
+    .status-badge {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+    }
+    .card h3 { margin-top: 0; color: #38bdf8; }
+    button {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>Painel EcoVento</h1>
-  <div id="dados">A carregar dados do servidor...</div>
+  <div class="container">
+    <h1>🌱 EcoVento Dashboard</h1>
+    
+    <div class="card" id="geral">
+      <h3>Estado Geral</h3>
+      <p id="empresa">A carregar dados do servidor...</p>
+      <div id="badge-container"></div>
+    </div>
+
+    <h2>Parques Eólicos</h2>
+    <div class="grid" id="parques">
+      <div class="card"><p>A carregar parques...</p></div>
+    </div>
+
+    <button onclick="carregarDados()">🔄 Atualizar Dados</button>
+  </div>
 
   <script>
-    fetch('https://ecovento-backend.onrender.com/api/status')
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById('dados').innerHTML = `
-          <p><strong>Empresa:</strong> ${data.empresa}</p>
-          <p><strong>Estado:</strong> ${data.estado}</p>
-          <p><strong>Parques Eólicos:</strong> ${data.parquesEolicos}</p>
-        `;
-      })
-      .catch(err => {
-        document.getElementById('dados').innerText = 'Servidor a acordar ou erro de ligação. Aguarde alguns segundos e atualize a página.';
-      });
+    const API_URL = 'https://ecovento-backend.onrender.com';
+
+    function carregarDados() {
+      // 1. Procurar estado geral
+      fetch(`${API_URL}/api/status`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('empresa').innerText = data.empresa;
+          document.getElementById('badge-container').innerHTML = 
+            `<span class="status-badge">● ${data.estado}</span>
+             <p><strong>Parques Ativos:</strong> ${data.parquesEolicos} | <strong>Eficiência:</strong> ${data.eficienciaGlobal}</p>`;
+        })
+        .catch(() => {
+          document.getElementById('empresa').innerText = 'A ligar ao servidor... Se for a primeira vez, aguarde ~40 seg.';
+        });
+
+      // 2. Procurar lista de parques
+      fetch(`${API_URL}/api/parques`)
+        .then(res => res.json())
+        .then(parques => {
+          const container = document.getElementById('parques');
+          container.innerHTML = '';
+          parques.forEach(p => {
+            container.innerHTML += `
+              <div class="card">
+                <h3>${p.nome}</h3>
+                <p><strong>Potência:</strong> ${p.potenciaMW} MW</p>
+                <p><strong>Estado:</strong> ${p.estado}</p>
+              </div>
+            `;
+          });
+        });
+    }
+
+    // Carregar ao abrir a página
+    carregarDados();
   </script>
 </body>
 </html>
