@@ -9,7 +9,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-amber-500 selection:text-slate-950 pb-20">
 
   <!-- Navbar Superior com Menu de Navegação -->
   <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
@@ -25,9 +25,10 @@
       <!-- Menu de Navegação (Desktop) -->
       <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
         <a href="index.html" class="text-amber-400 hover:text-white transition-colors">Dashboard</a>
-        <a href="obras.html" class="hover:text-amber-400 transition-colors">Obras</a>
-        <a href="sobre.html" class="hover:text-amber-400 transition-colors">Sobre Nós</a>
-        <a href="contacto.html" class="hover:text-amber-400 transition-colors">Contactos</a>
+        <a href="#simulador" class="hover:text-amber-400 transition-colors">Simulador</a>
+        <a href="#frota" class="hover:text-amber-400 transition-colors">Frota</a>
+        <a href="#certificacoes" class="hover:text-amber-400 transition-colors">Certificações</a>
+        <a href="#contacto" class="hover:text-amber-400 transition-colors">Contactos</a>
       </nav>
 
       <div class="flex items-center gap-3">
@@ -36,19 +37,20 @@
     </div>
 
     <!-- Submenu Mobile -->
-    <div class="md:hidden flex justify-around py-2 bg-slate-900 border-t border-slate-800 text-xs font-semibold">
+    <div class="md:hidden flex justify-around py-2 bg-slate-900 border-t border-slate-800 text-[11px] font-semibold">
       <a href="index.html" class="text-amber-400">Dashboard</a>
-      <a href="obras.html" class="text-slate-300">Obras</a>
-      <a href="sobre.html" class="text-slate-300">Sobre Nós</a>
-      <a href="contacto.html" class="text-slate-300">Contactos</a>
+      <a href="#simulador" class="text-slate-300">Simulador</a>
+      <a href="#frota" class="text-slate-300">Frota</a>
+      <a href="#certificacoes" class="text-slate-300">Alvarás</a>
+      <a href="#contacto" class="text-slate-300">Contacto</a>
     </div>
   </header>
 
   <!-- Conteúdo Principal -->
-  <main class="max-w-7xl mx-auto px-4 py-8">
+  <main class="max-w-7xl mx-auto px-4 py-8 space-y-12">
     
     <!-- Secção de Indicadores Gerais -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
         <p class="text-slate-400 text-sm font-medium">Estado da Empresa</p>
         <h3 class="text-2xl font-bold text-white mt-1">Operacional</h3>
@@ -66,93 +68,238 @@
       </div>
     </div>
 
-    <!-- Grelha de Projetos e Estruturas -->
-    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-      <span>🏗️</span> Projetos e Parques em Execução
-    </h2>
-    <div id="grid-projetos" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-      <!-- Projetos carregados via JS -->
-    </div>
+    <!-- SIMULADOR INTERATIVO DE CUSTOS -->
+    <section id="simulador" class="bg-slate-900 border border-amber-500/30 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+      <div class="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="mb-6">
+        <span class="text-xs text-amber-400 font-bold uppercase tracking-widest block">Ferramenta Interativa</span>
+        <h2 class="text-2xl font-bold text-white mt-1 flex items-center gap-2">
+          <span>🧮</span> Simulador de Orçamento e Estimativa de Custo
+        </h2>
+        <p class="text-slate-400 text-xs md:text-sm mt-1">Calcule instantaneamente o investimento estimado e prazo de execução para a sua obra.</p>
+      </div>
 
-    <!-- Grelha de Ambientes e Interiores Executivos -->
-    <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-      <span>🏢</span> Ambientes e Interiores Corporativos
-    </h2>
-    <div id="grid-ambientes" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Ambientes carregados via JS -->
-    </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+        <div>
+          <label class="block text-slate-300 text-xs font-semibold mb-2">Área Construída (m²):</label>
+          <input type="number" id="input-area" value="150" min="20" max="10000" oninput="calcularOrcamento()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors">
+        </div>
+        <div>
+          <label class="block text-slate-300 text-xs font-semibold mb-2">Tipologia da Obra:</label>
+          <select id="select-tipologia" onchange="calcularOrcamento()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors">
+            <option value="950">Residencial Padrão (€950/m²)</option>
+            <option value="1400" selected>Edifício Corporativo / Comercial (€1.400/m²)</option>
+            <option value="1800">Infraestrutura & Obras Públicas (€1.800/m²)</option>
+            <option value="2200">Empreendimento de Luxo (€2.200/m²)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-300 text-xs font-semibold mb-2">Padrão de Acabamento:</label>
+          <select id="select-acabamento" onchange="calcularOrcamento()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors">
+            <option value="1">Standard</option>
+            <option value="1.15" selected>Superior (+15%)</option>
+            <option value="1.3">Premium & High-Tech (+30%)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-6 border-t border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+        <div>
+          <span class="text-slate-400 text-xs block">Investimento Estimado:</span>
+          <span id="resultado-valor" class="text-2xl font-extrabold text-emerald-400">€0</span>
+        </div>
+        <div>
+          <span class="text-slate-400 text-xs block">Prazo de Execução Estimado:</span>
+          <span id="resultado-prazo" class="text-xl font-bold text-amber-400">0 meses</span>
+        </div>
+        <div class="flex items-center">
+          <a href="#contacto" class="w-full text-center bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-xl transition-all shadow-lg text-xs md:text-sm">
+            📩 Solicitar Proposta Oficial
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJETOS EM EXECUÇÃO -->
+    <section>
+      <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span>🏗️</span> Projetos e Parques em Execução
+      </h2>
+      <div id="grid-projetos" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </section>
+
+    <!-- FROTA E EQUIPAMENTOS PESADOS -->
+    <section id="frota">
+      <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span>🚜</span> Parque de Máquinas & Frota Pesada Própria
+      </h2>
+      <div id="grid-frota" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </section>
+
+    <!-- CERTIFICAÇÕES E ALVARÁS DE LICITACÃO -->
+    <section id="certificacoes" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+      <span class="text-xs text-amber-400 font-bold uppercase tracking-widest block">Qualificação Técnica & Licenciamento</span>
+      <h2 class="text-2xl font-bold text-white mt-1 mb-6 flex items-center gap-2">
+        <span>📜</span> Alvarás, Licenças & Certificações ISO
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
+          <span class="text-emerald-400 text-2xl font-bold block mb-1">ISO 9001:2015</span>
+          <h3 class="text-white font-semibold text-sm">Gestão da Qualidade</h3>
+          <p class="text-slate-400 text-xs mt-2">Certificação internacional auditada para gestão de obras de grande porte.</p>
+        </div>
+        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
+          <span class="text-amber-400 text-2xl font-bold block mb-1">Alvará Classe 8</span>
+          <h3 class="text-white font-semibold text-sm">IMPIC / Habitação</h3>
+          <p class="text-slate-400 text-xs mt-2">Habilitação técnica ilimitada para contratação pública e obras privadas.</p>
+        </div>
+        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800">
+          <span class="text-blue-400 text-2xl font-bold block mb-1">ISO 45001</span>
+          <h3 class="text-white font-semibold text-sm">Segurança & Saúde no Trabalho</h3>
+          <p class="text-slate-400 text-xs mt-2">Padrões máximos de prevenção e proteção para equipas no terreno.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLANTAS ARQUITETÓNICAS -->
+    <section>
+      <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span>📐</span> Plantas Baixas & Desenhos Técnicos
+      </h2>
+      <div id="grid-plantas" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </section>
+
+    <!-- AMBIENTES E INTERIORES -->
+    <section>
+      <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <span>🏢</span> Ambientes e Interiores Corporativos
+      </h2>
+      <div id="grid-ambientes" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- FORMULÁRIO DE CONTACTO & WHATSAPP -->
+    <section id="contacto" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <span class="text-xs text-amber-400 font-bold uppercase tracking-widest block">Atendimento Comercial</span>
+          <h2 class="text-2xl font-bold text-white mt-1">Contacte a Vanguarda Engenharia</h2>
+          <p class="text-slate-400 text-xs md:text-sm mt-2 leading-relaxed">
+            Solicite orçamentos, propostas para concursos públicos ou agende uma visita técnica à nossa sede.
+          </p>
+          <div class="mt-6 space-y-4 text-xs md:text-sm text-slate-300">
+            <p class="flex items-center gap-2">📍 <strong class="text-white">Morada:</strong> Av. Principal de Engenharia, Lote 42</p>
+            <p class="flex items-center gap-2">✉️ <strong class="text-white">E-mail:</strong> comercial@vanguardaengenharia.pt</p>
+            <p class="flex items-center gap-2">📞 <strong class="text-white">Telefone:</strong> +351 210 000 000</p>
+          </div>
+          
+          <!-- Botão WhatsApp Directo -->
+          <div class="mt-6">
+            <a href="https://wa.me/351900000000?text=Olá,%20gostaria%20de%20solicitar%20uma%20proposta%20à%20Vanguarda%20Engenharia." target="_blank" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all shadow-lg text-xs md:text-sm w-full md:w-auto">
+              💬 Falar no WhatsApp Oficial
+            </a>
+          </div>
+        </div>
+
+        <!-- Formulário -->
+        <form onsubmit="event.preventDefault(); alert('Mensagem enviada com sucesso! A equipa comercial entrará em contacto brevemente.');" class="space-y-4">
+          <div>
+            <label class="block text-slate-300 text-xs font-semibold mb-1">Nome Completo / Empresa:</label>
+            <input type="text" required placeholder="Sua empresa ou nome" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-slate-300 text-xs font-semibold mb-1">E-mail de Contacto:</label>
+            <input type="email" required placeholder="email@empresa.com" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-slate-300 text-xs font-semibold mb-1">Mensagem / Pedido de Proposta:</label>
+            <textarea rows="3" required placeholder="Descreva o seu projeto ou necessidade..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-amber-500"></textarea>
+          </div>
+          <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-xl transition-all text-xs uppercase tracking-wider">
+            Enviar Pedido de Orçamento
+          </button>
+        </form>
+      </div>
+    </section>
 
   </main>
 
   <script>
-    // LISTA DE PROJETOS PRINCIPAIS
+    // LÓGICA DO SIMULADOR
+    function calcularOrcamento() {
+      const area = parseFloat(document.getElementById('input-area').value) || 0;
+      const custoM2 = parseFloat(document.getElementById('select-tipologia').value) || 0;
+      const fatorAcabamento = parseFloat(document.getElementById('select-acabamento').value) || 1;
+
+      const valorTotal = area * custoM2 * fatorAcabamento;
+      let meses = Math.ceil(area / 80);
+      if (meses < 3) meses = 3;
+
+      document.getElementById('resultado-valor').innerText = '€' + valorTotal.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
+      document.getElementById('resultado-prazo').innerText = meses + ' Meses';
+    }
+    calcularOrcamento();
+
+    // PROJETOS
     const meusProjetos = [
-      {
-        id: "205",
-        nome: "Infraestrutura Viária Sul",
-        estado: "Em Curso",
-        valor: "€1.800.000",
-        imagem: "https://images.unsplash.com/photo-1541888946425-d0fbb18f26f2?auto=format&fit=crop&w=600&q=80"
+      { id: "205", nome: "Infraestrutura Viária Sul", estado: "Em Curso", valor: "€1.800.000", imagem: "https://images.unsplash.com/photo-1541888946425-d0fbb18f26f2?auto=format&fit=crop&w=600&q=80" },
+      { id: "206", nome: "Residencial Vista Verde", estado: "Concluído", valor: "€2.200.000", imagem: "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80" },
+      { id: "207", nome: "Edifício Corporate Center", estado: "Em Curso", valor: "€3.900.000", imagem: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80" },
+      { id: "208", nome: "Remodelação Hospitalar", estado: "Em Curso", valor: "€2.700.000", imagem: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80" }
+    ];
+
+    // FROTA DE EQUIPAMENTOS (COM FOTOS EM ALTA RESOLUÇÃO)
+    const minhaFrota = [
+      { 
+        titulo: "Escavadoras de Lagartas", 
+        qtd: "12 Unidades", 
+        tipo: "Terraplanagem", 
+        imagem: "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&w=600&q=80" 
       },
-      {
-        id: "206",
-        nome: "Residencial Vista Verde",
-        estado: "Concluído",
-        valor: "€2.200.000",
-        imagem: "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80"
+      { 
+        titulo: "Gruas de Torre Articuladas", 
+        qtd: "6 Unidades", 
+        tipo: "Elevação & Estrutura", 
+        imagem: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80" 
       },
-      {
-        id: "207",
-        nome: "Edifício Corporate Center",
-        estado: "Em Curso",
-        valor: "€3.900.000",
-        imagem: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=600&q=80"
+      { 
+        titulo: "Camiões Basculantes Pesados", 
+        qtd: "20 Unidades", 
+        tipo: "Transporte de Carga", 
+        imagem: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=600&q=80" 
       },
-      {
-        id: "208",
-        nome: "Remodelação Hospitalar",
-        estado: "Em Curso",
-        valor: "€2.700.000",
-        imagem: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80"
+      { 
+        titulo: "Retroescavadoras & Pás", 
+        qtd: "15 Unidades", 
+        tipo: "Movimentação de Solos", 
+        imagem: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=600&q=80" 
       }
     ];
 
-    // LISTA DE AMBIENTES E INTERIORES
+    // PLANTAS
+    const minhasPlantas = [
+      { titulo: "Planta Baixa - Edifício Corporate Center", escala: "1:100", area: "3.400 m²", tipo: "Arquitetura & Layout", imagem: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" },
+      { titulo: "Planta Estrutural - Residencial Vista Verde", escala: "1:50", area: "1.850 m²", tipo: "Engenharia Estrutural", imagem: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80" }
+    ];
+
+    // AMBIENTES
     const meusAmbientes = [
-      {
-        titulo: "Escritório Executivo Premium",
-        tipo: "Corporativo",
-        descricao: "Design moderno com acabamentos em madeira nobre e iluminação LED integrada.",
-        imagem: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80"
-      },
-      {
-        titulo: "Receção & Atrio Central",
-        tipo: "Interiores",
-        descricao: "Espaço amplo com pé-direito duplo, revestimentos acústicos e controlo de acessos.",
-        imagem: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=80"
-      },
-      {
-        titulo: "Sala de Reuniões de Direção",
-        tipo: "Tecnologia",
-        descricao: "Equipada com sistemas avançados de videoconferência e isolamento acústico superior.",
-        imagem: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=600&q=80"
-      }
+      { titulo: "Escritório Executivo Premium", tipo: "Corporativo", descricao: "Design moderno com acabamentos em madeira nobre e iluminação LED.", imagem: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80" },
+      { titulo: "Receção & Atrio Central", tipo: "Interiores", descricao: "Espaço amplo com pé-direito duplo e revestimentos acústicos.", imagem: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=80" },
+      { titulo: "Sala de Reuniões de Direção", tipo: "Tecnologia", descricao: "Equipada com videoconferência avançada e isolamento acústico.", imagem: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=600&q=80" }
     ];
 
-    // Desenhar Projetos
+    // DESENHAR PROJETOS
     const containerProjetos = document.getElementById('grid-projetos');
     document.getElementById('contador-projetos').innerText = meusProjetos.length + ' Projetos';
-    
     containerProjetos.innerHTML = '';
     meusProjetos.forEach(p => {
       const corBadge = p.estado === 'Concluído' ? 'text-emerald-400' : 'text-amber-400';
       containerProjetos.innerHTML += `
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <div class="h-48 overflow-hidden relative">
             <img src="${p.imagem}" alt="${p.nome}" class="w-full h-full object-cover">
-            <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold ${corBadge} border border-slate-700">
-              ${p.estado}
-            </div>
+            <div class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold ${corBadge} border border-slate-700">${p.estado}</div>
           </div>
           <div class="p-6">
             <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Projeto 0${p.id}</span>
@@ -162,21 +309,56 @@
               <span class="text-emerald-400 font-bold text-base">${p.valor}</span>
             </div>
           </div>
-        </div>
-      `;
+        </div>`;
     });
 
-    // Desenhar Ambientes
+    // DESENHAR FROTA
+    const containerFrota = document.getElementById('grid-frota');
+    containerFrota.innerHTML = '';
+    minhaFrota.forEach(f => {
+      containerFrota.innerHTML += `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all">
+          <div class="h-44 overflow-hidden relative">
+            <img src="${f.imagem}" alt="${f.titulo}" class="w-full h-full object-cover">
+            <span class="absolute top-3 left-3 bg-amber-500 text-slate-950 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">${f.tipo}</span>
+          </div>
+          <div class="p-5">
+            <h3 class="text-base font-bold text-white">${f.titulo}</h3>
+            <p class="text-emerald-400 text-xs font-semibold mt-1">● ${f.qtd} Disponíveis</p>
+          </div>
+        </div>`;
+    });
+
+    // DESENHAR PLANTAS
+    const containerPlantas = document.getElementById('grid-plantas');
+    containerPlantas.innerHTML = '';
+    minhasPlantas.forEach(planta => {
+      containerPlantas.innerHTML += `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div class="h-56 overflow-hidden relative bg-slate-950 p-2">
+            <img src="${planta.imagem}" alt="${planta.titulo}" class="w-full h-full object-contain rounded-lg">
+            <span class="absolute top-4 left-4 bg-amber-500 text-slate-950 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">${planta.escala}</span>
+          </div>
+          <div class="p-6">
+            <span class="text-xs text-amber-400 font-semibold uppercase block">${planta.tipo}</span>
+            <h3 class="text-lg font-bold text-white mt-1">${planta.titulo}</h3>
+            <div class="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center text-sm">
+              <span class="text-slate-400">Área: <strong class="text-white">${planta.area}</strong></span>
+              <button onclick="alert('A abrir desenho técnico em alta resolução...')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 font-semibold">🔍 Ver Planta</button>
+            </div>
+          </div>
+        </div>`;
+    });
+
+    // DESENHAR AMBIENTES
     const containerAmbientes = document.getElementById('grid-ambientes');
     containerAmbientes.innerHTML = '';
     meusAmbientes.forEach(a => {
       containerAmbientes.innerHTML += `
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl hover:border-slate-700 transition-all flex flex-col">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl flex flex-col">
           <div class="h-44 overflow-hidden relative">
             <img src="${a.imagem}" alt="${a.titulo}" class="w-full h-full object-cover">
-            <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-semibold text-amber-400 border border-slate-700 uppercase tracking-wider">
-              ${a.tipo}
-            </span>
+            <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-semibold text-amber-400 border border-slate-700 uppercase">${a.tipo}</span>
           </div>
           <div class="p-5 flex-1 flex flex-col justify-between">
             <div>
@@ -184,8 +366,7 @@
               <p class="text-slate-400 text-xs mt-2 leading-relaxed">${a.descricao}</p>
             </div>
           </div>
-        </div>
-      `;
+        </div>`;
     });
   </script>
 </body>
