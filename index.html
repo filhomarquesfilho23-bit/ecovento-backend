@@ -62,8 +62,8 @@
     
     <div class="card" id="geral">
       <h3>Estado Geral</h3>
-      <p id="empresa">A carregar dados do servidor...</p>
-      <div id="badge-container"></div>
+      <p id="empresa">A acordar servidor (pode demorar ~45s)...</p>
+      <div id="badge-container"><span class="status-badge" style="background: rgba(234, 179, 8, 0.2); color: #facc15;">● A aguardar...</span></div>
     </div>
 
     <h2>Parques Eólicos</h2>
@@ -71,45 +71,68 @@
       <div class="card"><p>A carregar parques...</p></div>
     </div>
 
-    <button onclick="carregarDados()">🔄 Atualizar Dados</button>
+    <button onclick="carregarDados()">🔄 Forçar Atualização</button>
   </div>
 
   <script>
     const API_URL = 'https://ecovento-backend.onrender.com';
 
-    function carregarDados() {
-      // 1. Procurar estado geral
-      fetch(`${API_URL}/api/status`)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('empresa').innerText = data.empresa;
-          document.getElementById('badge-container').innerHTML = 
-            `<span class="status-badge">● ${data.estado}</span>
-             <p><strong>Parques Ativos:</strong> ${data.parquesEolicos} | <strong>Eficiência:</strong> ${data.eficienciaGlobal}</p>`;
-        })
-        .catch(() => {
-          document.getElementById('empresa').innerText = 'A ligar ao servidor... Se for a primeira vez, aguarde ~40 seg.';
-        });
+    async function carregarDados() {
+      const empresaEl = document.getElementById('empresa');
+      const badgeContainer = document.getElementById('badge-container');
+      const parquesContainer = document.getElementById('parques');
 
-      // 2. Procurar lista de parques
-      fetch(`${API_URL}/api/parques`)
-        .then(res => res.json())
-        .then(parques => {
-          const container = document.getElementById('parques');
-          container.innerHTML = '';
-          parques.forEach(p => {
-            container.innerHTML += `
-              <div class="card">
-                <h3>${p.nome}</h3>
-                <p><strong>Potência:</strong> ${p.potenciaMW} MW</p>
-                <p><strong>Estado:</strong> ${p.estado}</p>
-              </div>
-            `;
-          });
-        });
+      empresaEl.innerText = 'A acordar o servidor no Render (por favor aguarde)...';
+      badgeContainer.innerHTML = '<span class="status-badge" style="background: rgba(234, 179, 8, 0.2); color: #facc15;">● A ligar...</span>';
+
+      let sucesso = false;
+      let tentativas = 0;
+      const maxTentativas = 15; // Tenta durante cerca de 1 minuto
+
+      while (!sucesso && tentativas < maxTentativas) {
+        tentativas++;
+        try {
+          // 1. Tenta carregar o estado geral
+          const resStatus = await fetch(`${API_URL}/api/status`);
+          if (!resStatus.ok) throw new Error('Servidor a iniciar');
+          const data = await resStatus.json();
+
+          empresaEl.innerText = data.empresa;
+          badgeContainer.innerHTML = `
+            <span class="status-badge">● ${data.estado}</span>
+            <p><strong>Parques Ativos:</strong> ${data.parquesEolicos} | <strong>Eficiência:</strong> ${data.eficienciaGlobal}</p>
+          `;
+
+          // 2. Tenta carregar os parques eólicos
+          const resParques = await fetch(`${API_URL}/api/parques`);
+          if (resParques.ok) {
+            const parques = await resParques.json();
+            parquesContainer.innerHTML = '';
+            parques.forEach(p => {
+              parquesContainer.innerHTML += `
+                <div class="card">
+                  <h3>${p.nome}</h3>
+                  <p><strong>Potência:</strong> ${p.potenciaMW} MW</p>
+                  <p><strong>Estado:</strong> ${p.estado}</p>
+                </div>
+              `;
+            });
+          }
+
+          sucesso = true; // Dados carregados com sucesso!
+        } catch (err) {
+          // Se falhar, espera 4 segundos e tenta de novo automaticamente
+          await new Promise(resolve => setTimeout(resolve, 4000));
+        }
+      }
+
+      if (!sucesso) {
+        empresaEl.innerText = 'O servidor demorou a responder. Toque em "Forçar Atualização".';
+        badgeContainer.innerHTML = '';
+      }
     }
 
-    // Carregar ao abrir a página
+    // Iniciar automaticamente ao abrir a página
     carregarDados();
   </script>
 </body>
