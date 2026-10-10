@@ -1,70 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoVento Energias Renováveis - Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #0284c7; font-size: 22px; text-align: center; }
-        .card { background: #f8fafc; border-left: 4px solid #0284c7; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
-        ul { padding-left: 20px; margin: 5px 0; }
-        li { margin-bottom: 6px; font-size: 14px; }
-        button { background: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
-        button:hover { background: #0369a1; }
-    </style>
+  <meta charset="UTF-8">
+  <title>EcoVento Dashboard</title>
 </head>
 <body>
-    <div class="container">
-        <h1>EcoVento Energias Renováveis</h1>
-        <p style="text-align: center; color: #666; font-size: 14px;">Painel de Controlo da Produção</p>
-        
-        <button onclick="carregarDados()">Atualizar Dados</button>
+  <h1>Painel EcoVento</h1>
+  <div id="dados">A carregar dados do servidor...</div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h3>Estado Geral</h3>
-            <div id="status-info" style="font-size: 14px; line-height: 1.6;">A carregar dados do servidor...</div>
-        </div>
-
-        <div class="card">
-            <h3>Parques Eólicos</h3>
-            <ul id="parques-list">A carregar parques...</ul>
-        </div>
-    </div>
-
-    <script>
-        const API_URL = 'https://ecovento-backend.onrender.com';
-
-        async function carregarDados() {
-            try {
-                const resStatus = await fetch(`${API_URL}/api/status`);
-                const status = await resStatus.json();
-                
-                document.getElementById('status-info').innerHTML = `
-                    <b>Empresa:</b> ${status.empresa}<br>
-                    <b>Estado:</b> ${status.estado}<br>
-                    <b>Parques Ativos:</b> ${status.parquesEolicos}<br>
-                    <b>Geração Atual:</b> ${status.geracaoAtualMW} MW (Total: ${status.capacidadeTotalMW} MW)<br>
-                    <b>Eficiência:</b> ${status.eficienciaGlobal}
-                `;
-
-                const resParques = await fetch(`${API_URL}/api/parques`);
-                const parques = await resParques.json();
-                
-                const lista = document.getElementById('parques-list');
-                lista.innerHTML = '';
-                parques.forEach(p => {
-                    lista.innerHTML += `<li><b>${p.nome}</b><br>⚡ ${p.potenciaMW} MW | Estado: ${p.estado} (${p.turbinas} turbinas)</li>`;
-                });
-
-            } catch (error) {
-                console.error('Erro ao ligar à API:', error);
-                document.getElementById('status-info').innerHTML = '⚠️ Erro ao ligar ao servidor. Certifica-te de que o deploy no Render já concluiu.';
-            }
-        }
-
-        carregarDados();
-    </script>
+  <script>
+    fetch('https://ecovento-backend.onrender.com/api/status')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('dados').innerHTML = `
+          <p><strong>Empresa:</strong> ${data.empresa}</p>
+          <p><strong>Estado:</strong> ${data.estado}</p>
+          <p><strong>Parques Eólicos:</strong> ${data.parquesEolicos}</p>
+        `;
+      })
+      .catch(err => {
+        document.getElementById('dados').innerText = 'Servidor a acordar ou erro de ligação. Aguarde alguns segundos e atualize a página.';
+      });
+  </script>
 </body>
 </html>
