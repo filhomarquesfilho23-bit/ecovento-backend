@@ -1,4 +1,4 @@
-# ecovento-baconst express = require('express');
+const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const app = express();
@@ -36,4 +36,3 @@ app.get('/api/parques', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor da EcoVento a correr na porta ${port}`);
 });
-ckend
