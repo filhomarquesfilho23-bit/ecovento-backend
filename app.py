@@ -24,10 +24,12 @@ def inicializar_bd():
         )
     ''')
     
-    # Tabela de Mão de Obra
+    # Tabela de Mão de Obra (com Nome e Idade)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS mao_obra (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            idade INTEGER,
             cargo TEXT,
             quantidade INTEGER,
             custo_diario REAL,
@@ -49,6 +51,15 @@ def inicializar_bd():
         ]
         cursor.executemany("INSERT INTO fluxo_caixa (mes, entradas, saidas) VALUES (?, ?, ?)", dados_iniciais)
         conn.commit()
+
+    # Inserir trabalhador de exemplo se a tabela estiver vazia
+    cursor.execute("SELECT COUNT(*) FROM mao_obra")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute(
+            "INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            ("Carlos Silva", 35, "Eletricista Sénior", 1, 85.0, 22, 1870.0)
+        )
+        conn.commit()
         
     conn.close()
 
@@ -56,37 +67,39 @@ def inicializar_bd():
 inicializar_bd()
 
 # --- SECÇÃO 1: FORMULÁRIO PARA REGISTAR NOVO TRABALHADOR ---
-with st.expander("➕ Registar Novo Trabalhador / Cargo"):
+with st.expander("➕ Registar Novo Trabalhador (Nome, Idade e Cargo)"):
     with st.form("form_novo_trabalhador", clear_on_submit=True):
-        st.write("Insira os dados do novo elemento da equipa:")
+        st.write("Insira os dados completos do trabalhador:")
         
         col_f1, col_f2 = st.columns(2)
         with col_f1:
-            novo_cargo = st.text_input("Cargo ou Função")
-            nova_qtd = st.number_input("Quantidade", min_value=1, value=1, step=1)
-            novo_custo_diario = st.number_input("Custo Diário (EUR)", min_value=0.0, value=75.0, step=5.0)
+            nome = st.text_input("Nome do Trabalhador", value="António Santos")
+            idade = st.number_input("Idade", min_value=18, max_value=80, value=28, step=1)
+            cargo = st.text_input("Cargo ou Função", value="Técnico de Instalações")
             
         with col_f2:
+            quantidade = st.number_input("Quantidade", min_value=1, value=1, step=1)
+            custo_diario = st.number_input("Custo Diário (EUR)", min_value=0.0, value=75.0, step=5.0)
             novos_dias = st.number_input("Dias de Trabalho Mensal", min_value=1, value=22, step=1)
             
         submit_button = st.form_submit_button(label="Guardar na Base de Dados")
         
         if submit_button:
-            if not novo_cargo.strip():
-                st.warning("Por favor, escreve um cargo válido.")
+            if not nome.strip() or not cargo.strip():
+                st.warning("Por favor, preencha o nome e o cargo corretamente.")
             else:
-                custo_mensal = nova_qtd * novo_custo_diario * novos_dias
+                custo_mensal = quantidade * custo_diario * novos_dias
                 
                 conexao = sqlite3.connect('vanguarda_erp.db')
                 cursor = conexao.cursor()
                 cursor.execute(
-                    "INSERT INTO mao_obra (cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?)",
-                    (novo_cargo, nova_qtd, novo_custo_diario, novos_dias, custo_mensal)
+                    "INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (nome, idade, cargo, quantidade, custo_diario, novos_dias, custo_mensal)
                 )
                 conexao.commit()
                 conexao.close()
                 
-                st.success(f"Trabalhador '{novo_cargo}' adicionado com sucesso!")
+                st.success(f"Trabalhador '{nome}' registado com sucesso!")
                 st.rerun()
 
 st.divider()
@@ -120,7 +133,7 @@ if not df_fluxo.empty:
     st.pyplot(fig)
 
 # --- SECÇÃO 3: TABELA DE REGISTOS DE MÃO DE OBRA ---
-with st.expander("📋 Ver Trabalhadores Registados na Base de Dados"):
+with st.expander("📋 Ver Equipa Registada na Base de Dados"):
     conn = sqlite3.connect('vanguarda_erp.db')
     df_mao = pd.read_sql("SELECT * FROM mao_obra", conn)
     conn.close()
