@@ -20,7 +20,27 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 Vanguarda ERP - Gestão Integrada & Dashboard Executivo")
+# --- SISTEMA DE AUTENTICAÇÃO (LOGIN) ---
+if "autenticado" not in st.session_state:
+    st.session_state["autenticado"] = False
+
+if not st.session_state["autenticado"]:
+    st.title("🔐 Vanguarda ERP - Autenticação Segura")
+    st.markdown("Insira as credenciais de acesso executivo para entrar no sistema.")
+    
+    with st.form("form_login"):
+        user = st.text_input("Utilizador", value="admin")
+        password = st.text_input("Palavra-passe", type="password", value="vanguarda2026")
+        btn_login = st.form_submit_button("Entrar no Sistema")
+        
+        if btn_login:
+            if user == "admin" and password == "vanguarda2026":
+                st.session_state["autenticado"] = True
+                st.success("Acesso autorizado! A carregar dashboard...")
+                st.rerun()
+            else:
+                st.error("Credenciais inválidas. Utilize: Utilizador 'admin' e Palavra-passe 'vanguarda2026'.")
+    st.stop()  # Impede o carregamento do resto da app se não estiver autenticado
 
 # --- 1. INICIALIZAÇÃO DA BASE DE DADOS SQLITE ---
 def inicializar_bd():
@@ -57,14 +77,22 @@ def inicializar_bd():
 
 inicializar_bd()
 
+st.title("🚀 Vanguarda ERP - Gestão Integrada & Dashboard Executivo")
+
+# Botão de Terminar Sessão na barra lateral
+with st.sidebar:
+    st.write("👤 **Sessão Ativa:** Administrador")
+    if st.button("Terminar Sessão"):
+        st.session_state["autenticado"] = False
+        st.rerun()
+
 # --- 2. NAVEGAÇÃO POR ABAS ---
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Dashboard & Projetos", "👥 Mão de Obra", "📦 Stock e Materiais", "💰 Financeiro"])
 
-# ================= TAB 1: DASHBOARD & PROJETOS (COM LAYOUT DUPLO LADO A LADO) =================
+# ================= TAB 1: DASHBOARD & PROJETOS =================
 with tab1:
     st.subheader("Painel Executivo e Obras em Curso")
     
-    # Linha de Métricas
     c1, c2, c3 = st.columns(3)
     with c1:
         st.metric("Estado da Empresa", "Operacional", "100% Ativo")
@@ -78,7 +106,7 @@ with tab1:
         
     st.divider()
 
-    # PEDIDO DO UTILIZADOR: Código do lado esquerdo, Projeto do lado direito só numa dela
+    # Layout Duplo: Código do lado esquerdo, Projeto do lado direito
     st.markdown("### 💻 Visualização Dupla (Lógica SQLite vs Projeto Renderizado)")
     col_codigo, col_projeto = st.columns(2)
     
@@ -125,7 +153,7 @@ def guardar_projeto_db(nome, status, valor, img):
                     st.success("Projeto guardado com sucesso!")
                     st.rerun()
 
-    # Grelha de Projetos Dinâmica a partir da Base de Dados
+    # Grelha de Projetos Dinâmica
     conn = sqlite3.connect('vanguarda_erp.db')
     df_proj = pd.read_sql("SELECT * FROM projetos", conn)
     conn.close()
@@ -137,6 +165,10 @@ def guardar_projeto_db(nome, status, valor, img):
                 st.image(row['imagem'], caption=f"{row['nome']} ({row['status']})", use_container_width=True)
                 st.markdown(f"**Valor do Contrato:** €{row['valor']:,.2f}")
                 st.write("---")
+        
+        # Botão de Exportação de Projetos
+        csv_proj = df_proj.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descarregar Relatório de Projetos (CSV)", csv_proj, "projetos_vanguarda.csv", "text/csv")
 
 # ================= TAB 2: MÃO DE OBRA =================
 with tab2:
@@ -168,6 +200,10 @@ with tab2:
     df_mo = pd.read_sql("SELECT * FROM mao_obra", conn)
     conn.close()
     st.dataframe(df_mo, use_container_width=True)
+    
+    if not df_mo.empty:
+        csv_mo = df_mo.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descarregar Relatório de Mão de Obra (CSV)", csv_mo, "mao_de_obra_vanguarda.csv", "text/csv")
 
 # ================= TAB 3: STOCK E MATERIAIS =================
 with tab3:
@@ -194,6 +230,10 @@ with tab3:
     df_st = pd.read_sql("SELECT * FROM stock_materiais", conn)
     conn.close()
     st.dataframe(df_st, use_container_width=True)
+    
+    if not df_st.empty:
+        csv_st = df_st.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descarregar Relatório de Stock (CSV)", csv_st, "stock_vanguarda.csv", "text/csv")
 
 # ================= TAB 4: FINANCEIRO =================
 with tab4:
@@ -222,3 +262,6 @@ with tab4:
 
         plt.tight_layout()
         st.pyplot(fig)
+        
+        csv_fl = df_fl.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descarregar Relatório Financeiro (CSV)", csv_fl, "financeiro_vanguarda.csv", "text/csv")
