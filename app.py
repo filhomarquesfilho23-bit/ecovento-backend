@@ -42,9 +42,11 @@ if not st.session_state["autenticado"]:
                 st.error("Credenciais inválidas. Utilize: Utilizador 'admin' e Palavra-passe 'vanguarda2026'.")
     st.stop()
 
-# --- 1. INICIALIZAÇÃO DA BASE DE DADOS SQLITE ---
+# --- 1. INICIALIZAÇÃO DA BASE DE DADOS SQLITE (Versão 3 Limpa) ---
+DB_NAME = 'vanguarda_erp_v3.db'
+
 def inicializar_bd():
-    conn = sqlite3.connect('vanguarda_erp.db')
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
     # Tabelas
@@ -116,7 +118,7 @@ with tab1:
     with c1:
         st.metric("Estado da Empresa", "Operacional", "100% Ativo")
     with c2:
-        conn = sqlite3.connect('vanguarda_erp.db')
+        conn = sqlite3.connect(DB_NAME)
         total_p = pd.read_sql("SELECT COUNT(*) as t FROM projetos", conn).iloc[0]['t']
         conn.close()
         st.metric("Obras / Projetos Ativos", f"{total_p} Projetos", "Monitorização em tempo real")
@@ -126,7 +128,7 @@ with tab1:
     st.divider()
 
     # Gráfico de Valores dos Projetos
-    conn = sqlite3.connect('vanguarda_erp.db')
+    conn = sqlite3.connect(DB_NAME)
     df_proj = pd.read_sql("SELECT * FROM projetos", conn)
     conn.close()
 
@@ -149,7 +151,7 @@ with tab1:
         st.markdown("**Código Fonte de Gestão (SQLite Backend):**")
         st.code("""
 def guardar_projeto_db(nome, status, valor, img):
-    conn = sqlite3.connect('vanguarda_erp.db')
+    conn = sqlite3.connect('vanguarda_erp_v3.db')
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)",
@@ -179,7 +181,7 @@ def guardar_projeto_db(nome, status, valor, img):
                 if not f_nome.strip():
                     st.warning("Insira um nome válido.")
                 else:
-                    conn = sqlite3.connect('vanguarda_erp.db')
+                    conn = sqlite3.connect(DB_NAME)
                     cursor = conn.cursor()
                     cursor.execute("INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)", (f_nome, f_status, f_valor, f_img))
                     conn.commit()
@@ -202,14 +204,16 @@ def guardar_projeto_db(nome, status, valor, img):
 with tab2:
     st.subheader("👥 Gestão de Mão de Obra e Equipa")
     
-    conn = sqlite3.connect('vanguarda_erp.db')
+    conn = sqlite3.connect(DB_NAME)
     df_mo = pd.read_sql("SELECT * FROM mao_obra", conn)
     conn.close()
 
     if not df_mo.empty:
-        st.markdown("### 📈 Gráfico: Custo Mensal por Cargo / Trabalhador")
+        st.markdown("### 📈 Gráfico: Custo Mensal por Trabalhador")
         fig_mo, ax_mo = plt.subplots(figsize=(10, 4))
-        ax_mo.bar(df_mo['nome'] + " (" + df_mo['cargo'] + ")", df_mo['custo_mensal'], color='#e67e22')
+        # Corrigido para evitar erro de coluna
+        labels_mo = df_mo['nome'].astype(str) + " - " + df_mo['cargo'].astype(str)
+        ax_mo.bar(labels_mo, df_mo['custo_mensal'], color='#e67e22')
         ax_mo.set_ylabel('Custo Mensal (EUR)')
         ax_mo.set_title('Despesa com Mão de Obra')
         plt.xticks(rotation=15, ha='right')
@@ -232,7 +236,7 @@ with tab2:
                 
             if st.form_submit_button("Guardar Trabalhador"):
                 custo_m = qtd * custo_d * dias
-                conn = sqlite3.connect('vanguarda_erp.db')
+                conn = sqlite3.connect(DB_NAME)
                 c = conn.cursor()
                 c.execute("INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
                           (nome, idade, cargo, qtd, custo_d, dias, custo_m))
@@ -251,7 +255,7 @@ with tab2:
 with tab3:
     st.subheader("📦 Gestão de Stock e Armazém")
     
-    conn = sqlite3.connect('vanguarda_erp.db')
+    conn = sqlite3.connect(DB_NAME)
     df_st = pd.read_sql("SELECT * FROM stock_materiais", conn)
     conn.close()
 
@@ -261,4 +265,63 @@ with tab3:
         ax_st.bar(df_st['material'], df_st['custo_total'], color='#9b59b6')
         ax_st.set_ylabel('Custo Total (EUR)')
         ax_st.set_title('Investimento em Materiais de Armazém')
+        ax_st.grid(axis='y', linestyle='--', alpha=0.7)
+        plt.tight_layout()
+        st.pyplot(fig_st)
+        st.divider()
+
+    with st.expander("➕ Registar Material"):
+        with st.form("form_stock", clear_on_submit=True):
+            mat = st.text_input("Material", value="Cabo de Cobre 16mm")
+            q_mat = st.number_input("Quantidade", value=100)
+            uni = st.text_input("Unidade", value="Metros")
+            p_uni = st.number_input("Preço Unitário (EUR)", value=6.50)
+            
+            if st.form_submit_button("Guardar Material"):
+                c_tot = q_mat * p_uni
+                conn = sqlite3.connect(DB_NAME)
+                c = conn.cursor()
+                c.execute("INSERT INTO stock_materiais (material, quantidade, unidade, preco_unitario, custo_total) VALUES (?, ?, ?, ?, ?)",
+                          (mat, q_mat, uni, p_uni, c_tot))
+                conn.commit()
+                conn.close()
+                st.success("Material adicionado ao stock!")
+                st.rerun()
+                
+    st.dataframe(df_st, use_container_width=True)
+    
+    if not df_st.empty:
+        csv_st = df_st.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descarregar Relatório de Stock (CSV)", csv_st, "stock_vanguarda.csv", "text/csv")
+
+# ================= TAB 4: FINANCEIRO =================
+with tab4:
+    st.subheader("📊 Painel Financeiro & Fluxo de Caixa")
+    conn = sqlite3.connect(DB_NAME)
+    df_fl = pd.read_sql("SELECT mes, entradas, saidas FROM fluxo_caixa", conn)
+    conn.close()
+
+    if not df_fl.empty:
+        st.markdown("### 📈 Gráfico: Evolução Mensal de Entradas vs Saídas")
+        fig, ax = plt.subplots(figsize=(10, 4))
+        meses = df_fl['mes'].tolist()
+        entradas = df_fl['entradas'].tolist()
+        saidas = df_fl['saidas'].tolist()
         
+        x = np.arange(len(meses))
+        width = 0.35
+
+        ax.bar(x - width/2, entradas, width, label='Entradas', color='#2ecc71')
+        ax.bar(x + width/2, saidas, width, label='Saídas', color='#e74c3c')
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(meses)
+        ax.set_title('Fluxo de Caixa Consolidado')
+        ax.legend(fontsize=8)
+        ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+        plt.tight_layout()
+        st.pyplot(fig)
+        
+        csv_fl = df_fl.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Descarregar Relatório Financeiro (CSV)", csv_fl, "financeiro_vanguarda.csv", "text/csv")
