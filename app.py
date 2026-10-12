@@ -1,9 +1,9 @@
-import sqlite3
-import pandas as pd
 import streamlit as st
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import base64
+from supabase import create_client, Client
 
 # Configuração da página do Streamlit
 st.set_page_config(page_title="Vanguarda Engenharia & Obras S.A.", layout="wide", page_icon="🏗️")
@@ -21,6 +21,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# --- CONEXÃO AO SUPABASE ---
+@st.cache_resource
+def init_connection():
+    url = st.secrets["supabase"]["url"]
+    key = st.secrets["supabase"]["key"]
+    return create_client(url, key)
+
+supabase: Client = init_connection()
+
 # --- SISTEMA DE AUTENTICAÇÃO COM NÍVEIS DE ACESSO (RBAC) ---
 if "autenticado" not in st.session_state:
     st.session_state["autenticado"] = False
@@ -28,8 +37,8 @@ if "autenticado" not in st.session_state:
     st.session_state["role"] = ""
 
 if not st.session_state["autenticado"]:
-    st.title("🔐 Vanguarda ERP - Portal de Autenticação Corporativa")
-    st.markdown("Insira as suas credenciais para aceder ao sistema de gestão.")
+    st.title("🔐 Vanguarda ERP - Portal de Autenticação na Nuvem")
+    st.markdown("Insira as suas credenciais para aceder ao sistema de gestão centralizado.")
     
     with st.form("form_login"):
         user_input = st.text_input("Utilizador", value="admin")
@@ -37,7 +46,6 @@ if not st.session_state["autenticado"]:
         btn_login = st.form_submit_button("Entrar no Sistema")
         
         if btn_login:
-            # Perfis de acesso simulados
             if user_input == "admin" and pass_input == "vanguarda2026":
                 st.session_state["autenticado"] = True
                 st.session_state["utilizador"] = "Administrador Geral"
@@ -57,69 +65,12 @@ if not st.session_state["autenticado"]:
                 st.success("Acesso autorizado em modo de Consulta!")
                 st.rerun()
             else:
-                st.error("Credenciais inválidas. Utilize:\n- Admin: admin / vanguarda2026\n- Diretor: diretor / obra2026\n- Cliente: cliente / cliente2026")
+                st.error("Credenciais inválidas.")
     st.stop()
 
-# --- 1. INICIALIZAÇÃO DA BASE DE DADOS SQLITE (Versão 4 Enterprise) ---
-DB_NAME = 'vanguarda_erp_v4.db'
+st.title("🚀 Vanguarda ERP - Cloud Enterprise System")
 
-def inicializar_bd():
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    # Tabelas
-    cursor.execute('''CREATE TABLE IF NOT EXISTS fluxo_caixa (id INTEGER PRIMARY KEY AUTOINCREMENT, mes TEXT, entradas REAL, saidas REAL)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS mao_obra (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, idade INTEGER, cargo TEXT, quantidade INTEGER, custo_diario REAL, dias INTEGER, custo_mensal REAL)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS stock_materiais (id INTEGER PRIMARY KEY AUTOINCREMENT, material TEXT, quantidade INTEGER, unidade TEXT, preco_unitario REAL, custo_total REAL)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS projetos (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, status TEXT, valor REAL, imagem TEXT)''')
-    
-    # Dados de Exemplo - Fluxo de Caixa
-    cursor.execute("SELECT COUNT(*) FROM fluxo_caixa")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO fluxo_caixa (mes, entradas, saidas) VALUES (?, ?, ?)", [
-            ('Maio', 45000, 38000), ('Junho', 62000, 50000), ('Julho', 58000, 48000),
-            ('Agosto', 70000, 60000), ('Setembro', 75000, 65000), ('Outubro', 80000, 70000)
-        ])
-        conn.commit()
-
-    # Dados de Exemplo - Projetos com Fotos Únicas e Sem Repetições
-    cursor.execute("SELECT COUNT(*) FROM projetos")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)", [
-            ("Projeto 205 - Infraestrutura Rodoviária", "Em Curso", 1800000.0, "https://images.unsplash.com/photo-1545677317-eb61803459eb"),
-            ("Projeto 206 - Residencial Vista Verde", "Concluído", 2200000.0, "https://images.unsplash.com/photo-1512917774080-9991f1c4c750"),
-            ("Projeto 207 - Edifício Corporate Center", "Em Curso", 3900000.0, "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab"),
-            ("Projeto 208 - Remodelação Hospitalar", "Em Curso", 2700000.0, "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc")
-        ])
-        conn.commit()
-
-    # Dados de Exemplo - Mão de Obra
-    cursor.execute("SELECT COUNT(*) FROM mao_obra")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)", [
-            ("Carlos Silva", 35, "Eletricista", 2, 80.0, 22, 3520.0),
-            ("António Santos", 42, "Encarregado", 1, 110.0, 22, 2420.0),
-            ("Manuel Ribeiro", 28, "Técnico", 3, 75.0, 22, 4950.0)
-        ])
-        conn.commit()
-
-    # Dados de Exemplo - Stock
-    cursor.execute("SELECT COUNT(*) FROM stock_materiais")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO stock_materiais (material, quantidade, unidade, preco_unitario, custo_total) VALUES (?, ?, ?, ?, ?)", [
-            ("Cabo de Cobre 16mm", 150, "Metros", 6.50, 975.0),
-            ("Tubagem PVC 50mm", 80, "Un", 12.00, 960.0),
-            ("Sacos de Cimento 50kg", 200, "Sacos", 5.50, 1100.0)
-        ])
-        conn.commit()
-        
-    conn.close()
-
-inicializar_bd()
-
-st.title("🚀 Vanguarda ERP - Enterprise Management System")
-
-# --- BARRA LATERAL COM PERFIL E FILTROS AVANÇADOS ---
+# --- BARRA LATERAL COM PERFIL E FILTROS ---
 with st.sidebar:
     st.write(f"👤 **Utilizador:** {st.session_state['utilizador']}")
     st.write(f"🛡️ **Perfil:** {st.session_state['role']}")
@@ -133,91 +84,64 @@ with st.sidebar:
         st.session_state["autenticado"] = False
         st.rerun()
 
-# --- 2. NAVEGAÇÃO POR ABAS ---
+# --- NAVEGAÇÃO POR ABAS ---
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Dashboard & Projetos", "👥 Mão de Obra", "📦 Stock e Materiais", "💰 Financeiro"])
 
 # ================= TAB 1: DASHBOARD & PROJETOS =================
 with tab1:
-    st.subheader("Painel Executivo e Obras em Curso")
+    st.subheader("Painel Executivo e Obras em Curso (Supabase Cloud)")
     
+    response_proj = supabase.table("projetos").select("*").execute()
+    df_proj = pd.DataFrame(response_proj.data)
+
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.metric("Estado da Empresa", "Operacional", "100% Ativo")
+        st.metric("Estado da Empresa", "Operacional", "Nuvem Sincronizada")
     with c2:
-        conn = sqlite3.connect(DB_NAME)
-        total_p = pd.read_sql("SELECT COUNT(*) as t FROM projetos", conn).iloc[0]['t']
-        conn.close()
-        st.metric("Obras / Projetos Ativos", f"{total_p} Projetos", "Monitorização em tempo real")
+        total_p = len(df_proj) if not df_proj.empty else 0
+        st.metric("Obras / Projetos Ativos", f"{total_p} Projetos", "Tempo real")
     with c3:
         st.metric("Eficiência Global", "96.4%", "+1.2% este mês")
         
     st.divider()
 
-    # Query com Filtro da Barra Lateral
-    conn = sqlite3.connect(DB_NAME)
-    if filtro_status == "Todos":
-        df_proj = pd.read_sql("SELECT * FROM projetos", conn)
-    else:
-        df_proj = pd.read_sql("SELECT * FROM projetos WHERE status = ?", conn, params=(filtro_status,))
-    conn.close()
-
     if not df_proj.empty:
-        st.markdown(f"### 📈 Gráfico: Contratos de Obras ({filtro_status})")
-        fig_proj, ax_proj = plt.subplots(figsize=(10, 4))
-        ax_proj.barh(df_proj['nome'], df_proj['valor'] / 1000000, color='#3498db')
-        ax_proj.set_xlabel('Valor do Contrato (Milhões de EUR)')
-        ax_proj.set_title('Comparativo de Contratos de Engenharia')
-        ax_proj.grid(axis='x', linestyle='--', alpha=0.7)
-        plt.tight_layout()
-        st.pyplot(fig_proj)
-        st.divider()
+        if filtro_status != "Todos":
+            df_proj_filtrado = df_proj[df_proj['status'] == filtro_status]
+        else:
+            df_proj_filtrado = df_proj
 
-    # Layout Duplo: Código do lado esquerdo, Projeto do lado direito
-    st.markdown("### 💻 Visualização Dupla (Lógica SQLite vs Projeto Renderizado)")
-    col_codigo, col_projeto = st.columns(2)
-    
-    with col_codigo:
-        st.markdown("**Código Fonte de Gestão (SQLite Backend):**")
-        st.code("""
-def guardar_projeto_db(nome, status, valor, img):
-    conn = sqlite3.connect('vanguarda_erp_v4.db')
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)",
-        (nome, status, valor, img)
-    )
-    conn.commit()
-    conn.close()
-        """, language="python")
-        st.caption("O código acima gere a persistência dos dados diretamente na base de dados SQLite.")
-        
-    with col_projeto:
-        st.markdown("**Projeto em Destaque (Frontend Streamlit):**")
-        st.image("https://images.unsplash.com/photo-1545677317-eb61803459eb", caption="Projeto Principal - Infraestrutura Rodoviária", use_container_width=True)
-        st.markdown("**Estado:** Em Curso | **Contrato:** €1.800.000")
+        if not df_proj_filtrado.empty:
+            st.markdown(f"### 📈 Gráfico: Contratos de Obras ({filtro_status})")
+            fig_proj, ax_proj = plt.subplots(figsize=(10, 4))
+            ax_proj.barh(df_proj_filtrado['nome'], df_proj_filtrado['valor'] / 1000000, color='#3498db')
+            ax_proj.set_xlabel('Valor do Contrato (Milhões de EUR)')
+            ax_proj.set_title('Comparativo de Contratos na Nuvem')
+            ax_proj.grid(axis='x', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            st.pyplot(fig_proj)
+            st.divider()
 
-    st.divider()
-    
-    # Restrição baseada no perfil: Cliente não pode adicionar dados novos
     if st.session_state["role"] in ["Admin", "Diretor"]:
         st.markdown("### 🏗️ Gestão e Registo de Novos Projetos")
-        with st.expander("➕ Registar Novo Projeto"):
+        with st.expander("➕ Registar Novo Projeto na Nuvem"):
             with st.form("form_novo_proj", clear_on_submit=True):
                 f_nome = st.text_input("Nome/Código do Projeto", value="Projeto 209 - Centro Logístico")
                 f_status = st.selectbox("Estado", ["Em Curso", "Concluído", "Planeamento"])
                 f_valor = st.number_input("Valor do Contrato (EUR)", min_value=10000.0, value=1500000.0, step=50000.0)
                 f_img = st.text_input("URL da Nova Fotografia", value="https://images.unsplash.com/photo-1503387762-592deb58ef4e")
                 
-                if st.form_submit_button("Guardar Projeto na Base de Dados"):
+                if st.form_submit_button("Guardar Projeto no Supabase"):
                     if not f_nome.strip():
                         st.warning("Insira um nome válido.")
                     else:
-                        conn = sqlite3.connect(DB_NAME)
-                        cursor = conn.cursor()
-                        cursor.execute("INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)", (f_nome, f_status, f_valor, f_img))
-                        conn.commit()
-                        conn.close()
-                        st.success("Projeto guardado com sucesso!")
+                        supabase.table("projetos").insert({
+                            "nome": f_nome,
+                            "status": f_status,
+                            "valor": f_valor,
+                            "imagem": f_img
+                        }).execute()
+                        st.success("Projeto guardado na nuvem com sucesso!")
                         st.rerun()
 
     if not df_proj.empty:
@@ -235,9 +159,8 @@ def guardar_projeto_db(nome, status, valor, img):
 with tab2:
     st.subheader("👥 Gestão de Mão de Obra e Equipa")
     
-    conn = sqlite3.connect(DB_NAME)
-    df_mo = pd.read_sql("SELECT * FROM mao_obra", conn)
-    conn.close()
+    response_mo = supabase.table("mao_obra").select("*").execute()
+    df_mo = pd.DataFrame(response_mo.data)
 
     if not df_mo.empty:
         st.markdown("### 📈 Gráfico: Custo Mensal por Trabalhador")
@@ -267,13 +190,12 @@ with tab2:
                     
                 if st.form_submit_button("Guardar Trabalhador"):
                     custo_m = qtd * custo_d * dias
-                    conn = sqlite3.connect(DB_NAME)
-                    c = conn.cursor()
-                    c.execute("INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                              (nome, idade, cargo, qtd, custo_d, dias, custo_m))
-                    conn.commit()
-                    conn.close()
-                    st.success("Trabalhador registado!")
+                    supabase.table("mao_obra").insert({
+                        "nome": nome, "idade": idade, "cargo": cargo,
+                        "quantidade": qtd, "custo_diario": custo_d,
+                        "dias": dias, "custo_mensal": custo_m
+                    }).execute()
+                    st.success("Trabalhador registado na nuvem!")
                     st.rerun()
                 
     st.dataframe(df_mo, use_container_width=True)
@@ -286,9 +208,8 @@ with tab2:
 with tab3:
     st.subheader("📦 Gestão de Stock e Armazém")
     
-    conn = sqlite3.connect(DB_NAME)
-    df_st = pd.read_sql("SELECT * FROM stock_materiais", conn)
-    conn.close()
+    response_st = supabase.table("stock_materiais").select("*").execute()
+    df_st = pd.DataFrame(response_st.data)
 
     if not df_st.empty:
         st.markdown("### 📈 Gráfico: Custo Total por Material em Stock")
@@ -311,13 +232,12 @@ with tab3:
                 
                 if st.form_submit_button("Guardar Material"):
                     c_tot = q_mat * p_uni
-                    conn = sqlite3.connect(DB_NAME)
-                    c = conn.cursor()
-                    c.execute("INSERT INTO stock_materiais (material, quantidade, unidade, preco_unitario, custo_total) VALUES (?, ?, ?, ?, ?)",
-                              (mat, q_mat, uni, p_uni, c_tot))
-                    conn.commit()
-                    conn.close()
-                    st.success("Material adicionado ao stock!")
+                    supabase.table("stock_materiais").insert({
+                        "material": mat, "quantidade": q_mat,
+                        "unidade": uni, "preco_unitario": p_uni,
+                        "custo_total": c_tot
+                    }).execute()
+                    st.success("Material adicionado ao stock na nuvem!")
                     st.rerun()
                 
     st.dataframe(df_st, use_container_width=True)
@@ -329,9 +249,9 @@ with tab3:
 # ================= TAB 4: FINANCEIRO =================
 with tab4:
     st.subheader("📊 Painel Financeiro & Fluxo de Caixa")
-    conn = sqlite3.connect(DB_NAME)
-    df_fl = pd.read_sql("SELECT mes, entradas, saidas FROM fluxo_caixa", conn)
-    conn.close()
+    
+    response_fl = supabase.table("fluxo_caixa").select("*").execute()
+    df_fl = pd.DataFrame(response_fl.data)
 
     if not df_fl.empty:
         st.markdown("### 📈 Gráfico: Evolução Mensal de Entradas vs Saídas")
@@ -348,7 +268,7 @@ with tab4:
 
         ax.set_xticks(x)
         ax.set_xticklabels(meses)
-        ax.set_title('Fluxo de Caixa Consolidado')
+        ax.set_title('Fluxo de Caixa Consolidado (Supabase)')
         ax.legend(fontsize=8)
         ax.grid(axis='y', linestyle='--', alpha=0.7)
 
@@ -367,17 +287,17 @@ with tab4:
         <head><title>Relatório Vanguarda ERP</title></head>
         <body style="font-family: Arial; background-color: #0d1117; color: white; padding: 20px;">
             <h1>Vanguarda Engenharia & Obras S.A.</h1>
-            <h3>Relatório Executivo Oficial - Gerado por {st.session_state['utilizador']}</h3>
+            <h3>Relatório Executivo Cloud - Gerado por {st.session_state['utilizador']}</h3>
             <hr>
             <h4>Resumo Operacional</h4>
-            <p>Estado da Empresa: <b>Operacional (100% Ativo)</b></p>
+            <p>Estado da Empresa: <b>Operacional (Sincronizado na Nuvem)</b></p>
             <p>Eficiência Global: <b>96.4%</b></p>
             <hr>
-            <h4>Projetos Ativos na Base de Dados</h4>
-            {df_proj.to_html(index=False)}
+            <h4>Projetos Ativos no Supabase</h4>
+            {df_proj.to_html(index=False) if not df_proj.empty else "Sem dados"}
         </body>
         </html>
         """
         b64 = base64.b64encode(html_report.encode()).decode()
-        href = f'<a href="data:text/html;base64,{b64}" download="Relatorio_Executivo_Vanguarda.html" target="_blank">📥 Clique aqui para descarregar o Relatório Executivo em HTML</a>'
+        href = f'<a href="data:text/html;base64,{b64}" download="Relatorio_Cloud_Vanguarda.html" target="_blank">📥 Clique aqui para descarregar o Relatório em HTML</a>'
         st.markdown(href, unsafe_allow_html=True)
