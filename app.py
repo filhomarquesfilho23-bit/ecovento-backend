@@ -29,10 +29,59 @@ st.markdown("""
 st.title("🏗️ Vanguarda ERP - Sistema de Gestão de Obra")
 st.markdown("Portal Executivo Integrado | Controlo de Mão de Obra e Stock")
 
-# 2. Função para carregar os dados diretamente da Base de Dados Persistente
+# 2. Inicializar e carregar dados da Base de Dados Persistente automaticamente
 @st.cache_data
 def carregar_dados_erp():
     conexao = sqlite3.connect('vanguarda_erp.db')
+    cursor = conexao.cursor()
+    
+    # Criar tabelas se não existirem
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mao_obra (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cargo TEXT NOT NULL,
+            quantidade INTEGER,
+            custo_diario REAL,
+            dias INTEGER,
+            custo_mensal REAL
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS stock (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            material TEXT NOT NULL,
+            quantidade_atual INTEGER,
+            stock_minimo INTEGER,
+            preco_unit REAL,
+            valor_total REAL
+        )
+    ''')
+    
+    # Inserir dados padrão se as tabelas estiverem vazias
+    cursor.execute("SELECT COUNT(*) FROM mao_obra")
+    if cursor.fetchone()[0] == 0:
+        equipa = [
+            ("Encarregado de Obra", 1, 120.0, 22, 2640.0),
+            ("Pedreiro Especializado", 8, 90.0, 22, 15840.0),
+            ("Servente / Ajudante", 6, 55.0, 22, 7260.0),
+            ("Gruista", 1, 95.0, 22, 2090.0)
+        ]
+        cursor.executemany("INSERT INTO mao_obra (cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?)", equipa)
+
+    cursor.execute("SELECT COUNT(*) FROM stock")
+    if cursor.fetchone()[0] == 0:
+        materiais = [
+            ("Cimento Portland", 40, 50, 7.50, 300.0),
+            ("Aço A500NR", 15, 30, 1.20, 18.0),
+            ("Tijolo Cerâmico", 3200, 1000, 0.45, 1440.0),
+            ("Tinta Plástica", 8, 15, 25.00, 200.0),
+            ("Areia Grossa", 120, 50, 18.00, 2160.0)
+        ]
+        cursor.executemany("INSERT INTO stock (material, quantidade_atual, stock_minimo, preco_unit, valor_total) VALUES (?, ?, ?, ?, ?)", materiais)
+        
+    conexao.commit()
+
     df_mao = pd.read_sql("SELECT * FROM mao_obra", conexao)
     df_stock = pd.read_sql("SELECT * FROM stock", conexao)
     conexao.close()
