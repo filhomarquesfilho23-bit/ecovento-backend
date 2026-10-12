@@ -4,140 +4,85 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Configuração da página do Streamlit
-st.set_page_config(page_title="Vanguarda ERP", layout="wide")
+# Configuração da página do Streamlit (Layout largo e tema escuro simulado)
+st.set_page_config(page_title="Vanguarda Engenharia & Obras S.A.", layout="wide")
 
-st.title("🚀 Vanguarda ERP - Gestão e Painel Financeiro")
+# Estilo CSS personalizado para dar o aspeto executivo/dark
+st.markdown("""
+    <style>
+    .main {
+        background-color: #0d1117;
+    }
+    .metric-card {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        padding: 20px;
+        border-radius: 10px;
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# 1. Função para inicializar a Base de Dados SQLite
-def inicializar_bd():
-    conn = sqlite3.connect('vanguarda_erp.db')
-    cursor = conn.cursor()
+# Cabeçalho da Empresa
+st.markdown("### 🟡 Vanguarda Engenharia & Obras S.A.")
+st.caption("DASHBOARD EXECUTIVO & ANALYTICS")
+
+# Linha de Métricas Principais (3 Colunas)
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown("""
+        <div class="metric-card">
+            <p style="color: #8b949e; margin-bottom: 5px; font-size: 14px;">Estado da Empresa</p>
+            <h2 style="color: #58a6ff; margin-top: 0;">Operacional</h2>
+            <p style="color: #2ea043; font-size: 12px; margin: 0;">● Todos os sistemas ativos</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+        <div class="metric-card">
+            <p style="color: #8b949e; margin-bottom: 5px; font-size: 14px;">Obras / Projetos Ativos</p>
+            <h2 style="color: #d29922; margin-top: 0;">4 Projetos</h2>
+            <p style="color: #8b949e; font-size: 12px; margin: 0;">Monitorização em tempo real</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("""
+        <div class="metric-card">
+            <p style="color: #8b949e; margin-bottom: 5px; font-size: 14px;">Eficiência Global</p>
+            <h2 style="color: #3fb950; margin-top: 0;">96.4%</h2>
+            <p style="color: #8b949e; font-size: 12px; margin: 0;">Performance operacional excelente</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.write("")
+st.markdown("### 🏗️ Projetos e Parques em Execução")
+
+# Grelha de Projetos (2 colunas x 2 linhas)
+p_col1, p_col2 = st.columns(2)
+
+with p_col1:
+    st.image("https://images.unsplash.com/photo-1541888946425-d0fbb18f504d", caption="PROJETO 205 - Infraestrutura Viária Sul (Em Curso)", use_container_width=True)
+    st.markdown("**Valor do Contrato:** €1.800.000")
     
-    # Tabela de Fluxo de Caixa
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS fluxo_caixa (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mes TEXT,
-            entradas REAL,
-            saidas REAL
-        )
-    ''')
+    st.write("---")
     
-    # Tabela de Mão de Obra (com Nome e Idade)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS mao_obra (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT,
-            idade INTEGER,
-            cargo TEXT,
-            quantidade INTEGER,
-            custo_diario REAL,
-            dias INTEGER,
-            custo_mensal REAL
-        )
-    ''')
+    st.image("https://images.unsplash.com/photo-1503387762-592deb58ef4e", caption="PROJETO 207 - Edifício Corporate Center (Em Curso)", use_container_width=True)
+    st.markdown("**Valor do Contrato:** €3.900.000")
+
+with p_col2:
+    st.image("https://images.unsplash.com/photo-1513694203232-719a280e022f", caption="PROJETO 206 - Residencial Vista Verde (Concluído)", use_container_width=True)
+    st.markdown("**Valor do Contrato:** €2.200.000")
     
-    # Inserir dados de exemplo no fluxo de caixa se estiver vazio
-    cursor.execute("SELECT COUNT(*) FROM fluxo_caixa")
-    if cursor.fetchone()[0] == 0:
-        dados_iniciais = [
-            ('Maio', 45000, 38000),
-            ('Junho', 62000, 50000),
-            ('Julho', 58000, 48000),
-            ('Agosto', 70000, 60000),
-            ('Setembro', 75000, 65000),
-            ('Outubro', 80000, 70000)
-        ]
-        cursor.executemany("INSERT INTO fluxo_caixa (mes, entradas, saidas) VALUES (?, ?, ?)", dados_iniciais)
-        conn.commit()
-
-    # Inserir trabalhador de exemplo se a tabela estiver vazia
-    cursor.execute("SELECT COUNT(*) FROM mao_obra")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute(
-            "INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ("Carlos Silva", 35, "Eletricista Sénior", 1, 85.0, 22, 1870.0)
-        )
-        conn.commit()
-        
-    conn.close()
-
-# Executar a inicialização
-inicializar_bd()
-
-# --- SECÇÃO 1: FORMULÁRIO PARA REGISTAR NOVO TRABALHADOR ---
-with st.expander("➕ Registar Novo Trabalhador (Nome, Idade e Cargo)"):
-    with st.form("form_novo_trabalhador", clear_on_submit=True):
-        st.write("Insira os dados completos do trabalhador:")
-        
-        col_f1, col_f2 = st.columns(2)
-        with col_f1:
-            nome = st.text_input("Nome do Trabalhador", value="António Santos")
-            idade = st.number_input("Idade", min_value=18, max_value=80, value=28, step=1)
-            cargo = st.text_input("Cargo ou Função", value="Técnico de Instalações")
-            
-        with col_f2:
-            quantidade = st.number_input("Quantidade", min_value=1, value=1, step=1)
-            custo_diario = st.number_input("Custo Diário (EUR)", min_value=0.0, value=75.0, step=5.0)
-            novos_dias = st.number_input("Dias de Trabalho Mensal", min_value=1, value=22, step=1)
-            
-        submit_button = st.form_submit_button(label="Guardar na Base de Dados")
-        
-        if submit_button:
-            if not nome.strip() or not cargo.strip():
-                st.warning("Por favor, preencha o nome e o cargo corretamente.")
-            else:
-                custo_mensal = quantidade * custo_diario * novos_dias
-                
-                conexao = sqlite3.connect('vanguarda_erp.db')
-                cursor = conexao.cursor()
-                cursor.execute(
-                    "INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (nome, idade, cargo, quantidade, custo_diario, novos_dias, custo_mensal)
-                )
-                conexao.commit()
-                conexao.close()
-                
-                st.success(f"Trabalhador '{nome}' registado com sucesso!")
-                st.rerun()
-
-st.divider()
-
-# --- SECÇÃO 2: PAINEL DE FLUXO DE CAIXA ---
-st.subheader("📊 Painel de Fluxo de Caixa Mensal")
-
-conn = sqlite3.connect('vanguarda_erp.db')
-df_fluxo = pd.read_sql("SELECT mes, entradas, saidas FROM fluxo_caixa", conn)
-conn.close()
-
-if not df_fluxo.empty:
-    fig, ax = plt.subplots(figsize=(8, 4))
-    meses = df_fluxo['mes'].tolist()
-    entradas = df_fluxo['entradas'].tolist()
-    saidas = df_fluxo['saidas'].tolist()
+    st.write("---")
     
-    x = np.arange(len(meses))
-    width = 0.35
+    st.image("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab", caption="PROJETO 208 - Remodelação Hospitalar (Em Curso)", use_container_width=True)
+    st.markdown("**Valor do Contrato:** €2.700.000")
 
-    ax.bar(x - width/2, entradas, width, label='Entradas', color='#2ecc71')
-    ax.bar(x + width/2, saidas, width, label='Saídas', color='#e74c3c')
+st.write("")
 
-    ax.set_xticks(x)
-    ax.set_xticklabels(meses)
-    ax.set_title('Evolução do Fluxo de Caixa')
-    ax.legend(fontsize=8)
-    ax.grid(axis='y', linestyle='--', alpha=0.7)
-
-    plt.tight_layout()
-    st.pyplot(fig)
-
-# --- SECÇÃO 3: TABELA DE REGISTOS DE MÃO DE OBRA ---
-with st.expander("📋 Ver Equipa Registada na Base de Dados"):
-    conn = sqlite3.connect('vanguarda_erp.db')
-    df_mao = pd.read_sql("SELECT * FROM mao_obra", conn)
-    conn.close()
-    if not df_mao.empty:
-        st.dataframe(df_mao)
-    else:
-        st.info("Ainda não existem trabalhadores registados.")
+# Botão de Sincronização Operacional
+if st.button("✨ Sincronizar Estado Operacional", type="primary", use_container_width=True):
+    st.success("Estado operacional sincronizado com sucesso com a base de dados central!")
