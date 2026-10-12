@@ -3,11 +3,12 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
+import base64
 
 # Configuração da página do Streamlit
-st.set_page_config(page_title="Vanguarda Engenharia & Obras S.A.", layout="wide")
+st.set_page_config(page_title="Vanguarda Engenharia & Obras S.A.", layout="wide", page_icon="🏗️")
 
-# Estilo visual moderno/executivo
+# Estilo visual moderno/executivo dark
 st.markdown("""
     <style>
     .metric-card {
@@ -20,30 +21,47 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- SISTEMA DE AUTENTICAÇÃO (LOGIN) ---
+# --- SISTEMA DE AUTENTICAÇÃO COM NÍVEIS DE ACESSO (RBAC) ---
 if "autenticado" not in st.session_state:
     st.session_state["autenticado"] = False
+    st.session_state["utilizador"] = ""
+    st.session_state["role"] = ""
 
 if not st.session_state["autenticado"]:
-    st.title("🔐 Vanguarda ERP - Autenticação Segura")
-    st.markdown("Insira as credenciais de acesso executivo para entrar no sistema.")
+    st.title("🔐 Vanguarda ERP - Portal de Autenticação Corporativa")
+    st.markdown("Insira as suas credenciais para aceder ao sistema de gestão.")
     
     with st.form("form_login"):
-        user = st.text_input("Utilizador", value="admin")
-        password = st.text_input("Palavra-passe", type="password", value="vanguarda2026")
+        user_input = st.text_input("Utilizador", value="admin")
+        pass_input = st.text_input("Palavra-passe", type="password", value="vanguarda2026")
         btn_login = st.form_submit_button("Entrar no Sistema")
         
         if btn_login:
-            if user == "admin" and password == "vanguarda2026":
+            # Perfis de acesso simulados
+            if user_input == "admin" and pass_input == "vanguarda2026":
                 st.session_state["autenticado"] = True
-                st.success("Acesso autorizado! A carregar dashboard...")
+                st.session_state["utilizador"] = "Administrador Geral"
+                st.session_state["role"] = "Admin"
+                st.success("Acesso autorizado como Administrador!")
+                st.rerun()
+            elif user_input == "diretor" and pass_input == "obra2026":
+                st.session_state["autenticado"] = True
+                st.session_state["utilizador"] = "Diretor de Obra"
+                st.session_state["role"] = "Diretor"
+                st.success("Acesso autorizado como Diretor de Obra!")
+                st.rerun()
+            elif user_input == "cliente" and pass_input == "cliente2026":
+                st.session_state["autenticado"] = True
+                st.session_state["utilizador"] = "Cliente / Consultor"
+                st.session_state["role"] = "Cliente"
+                st.success("Acesso autorizado em modo de Consulta!")
                 st.rerun()
             else:
-                st.error("Credenciais inválidas. Utilize: Utilizador 'admin' e Palavra-passe 'vanguarda2026'.")
+                st.error("Credenciais inválidas. Utilize:\n- Admin: admin / vanguarda2026\n- Diretor: diretor / obra2026\n- Cliente: cliente / cliente2026")
     st.stop()
 
-# --- 1. INICIALIZAÇÃO DA BASE DE DADOS SQLITE (Versão 3 Limpa) ---
-DB_NAME = 'vanguarda_erp_v3.db'
+# --- 1. INICIALIZAÇÃO DA BASE DE DADOS SQLITE (Versão 4 Enterprise) ---
+DB_NAME = 'vanguarda_erp_v4.db'
 
 def inicializar_bd():
     conn = sqlite3.connect(DB_NAME)
@@ -99,11 +117,19 @@ def inicializar_bd():
 
 inicializar_bd()
 
-st.title("🚀 Vanguarda ERP - Gestão Integrada & Dashboard Executivo")
+st.title("🚀 Vanguarda ERP - Enterprise Management System")
 
+# --- BARRA LATERAL COM PERFIL E FILTROS AVANÇADOS ---
 with st.sidebar:
-    st.write("👤 **Sessão Ativa:** Administrador")
-    if st.button("Terminar Sessão"):
+    st.write(f"👤 **Utilizador:** {st.session_state['utilizador']}")
+    st.write(f"🛡️ **Perfil:** {st.session_state['role']}")
+    st.divider()
+    
+    st.markdown("### 🔍 Filtros Avançados")
+    filtro_status = st.selectbox("Filtrar Projetos por Estado", ["Todos", "Em Curso", "Concluído", "Planeamento"])
+    
+    st.divider()
+    if st.button("Terminar Sessão", type="secondary"):
         st.session_state["autenticado"] = False
         st.rerun()
 
@@ -127,13 +153,16 @@ with tab1:
         
     st.divider()
 
-    # Gráfico de Valores dos Projetos
+    # Query com Filtro da Barra Lateral
     conn = sqlite3.connect(DB_NAME)
-    df_proj = pd.read_sql("SELECT * FROM projetos", conn)
+    if filtro_status == "Todos":
+        df_proj = pd.read_sql("SELECT * FROM projetos", conn)
+    else:
+        df_proj = pd.read_sql("SELECT * FROM projetos WHERE status = ?", conn, params=(filtro_status,))
     conn.close()
 
     if not df_proj.empty:
-        st.markdown("### 📈 Gráfico: Distribuição de Valores por Contrato de Obra")
+        st.markdown(f"### 📈 Gráfico: Contratos de Obras ({filtro_status})")
         fig_proj, ax_proj = plt.subplots(figsize=(10, 4))
         ax_proj.barh(df_proj['nome'], df_proj['valor'] / 1000000, color='#3498db')
         ax_proj.set_xlabel('Valor do Contrato (Milhões de EUR)')
@@ -151,7 +180,7 @@ with tab1:
         st.markdown("**Código Fonte de Gestão (SQLite Backend):**")
         st.code("""
 def guardar_projeto_db(nome, status, valor, img):
-    conn = sqlite3.connect('vanguarda_erp_v3.db')
+    conn = sqlite3.connect('vanguarda_erp_v4.db')
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)",
@@ -168,26 +197,28 @@ def guardar_projeto_db(nome, status, valor, img):
         st.markdown("**Estado:** Em Curso | **Contrato:** €1.800.000")
 
     st.divider()
-    st.markdown("### 🏗️ Gestão e Registo de Novos Projetos")
     
-    with st.expander("➕ Registar Novo Projeto"):
-        with st.form("form_novo_proj", clear_on_submit=True):
-            f_nome = st.text_input("Nome/Código do Projeto", value="Projeto 209 - Centro Logístico")
-            f_status = st.selectbox("Estado", ["Em Curso", "Concluído", "Planeamento"])
-            f_valor = st.number_input("Valor do Contrato (EUR)", min_value=10000.0, value=1500000.0, step=50000.0)
-            f_img = st.text_input("URL da Nova Fotografia", value="https://images.unsplash.com/photo-1503387762-592deb58ef4e")
-            
-            if st.form_submit_button("Guardar Projeto na Base de Dados"):
-                if not f_nome.strip():
-                    st.warning("Insira um nome válido.")
-                else:
-                    conn = sqlite3.connect(DB_NAME)
-                    cursor = conn.cursor()
-                    cursor.execute("INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)", (f_nome, f_status, f_valor, f_img))
-                    conn.commit()
-                    conn.close()
-                    st.success("Projeto guardado com sucesso!")
-                    st.rerun()
+    # Restrição baseada no perfil: Cliente não pode adicionar dados novos
+    if st.session_state["role"] in ["Admin", "Diretor"]:
+        st.markdown("### 🏗️ Gestão e Registo de Novos Projetos")
+        with st.expander("➕ Registar Novo Projeto"):
+            with st.form("form_novo_proj", clear_on_submit=True):
+                f_nome = st.text_input("Nome/Código do Projeto", value="Projeto 209 - Centro Logístico")
+                f_status = st.selectbox("Estado", ["Em Curso", "Concluído", "Planeamento"])
+                f_valor = st.number_input("Valor do Contrato (EUR)", min_value=10000.0, value=1500000.0, step=50000.0)
+                f_img = st.text_input("URL da Nova Fotografia", value="https://images.unsplash.com/photo-1503387762-592deb58ef4e")
+                
+                if st.form_submit_button("Guardar Projeto na Base de Dados"):
+                    if not f_nome.strip():
+                        st.warning("Insira um nome válido.")
+                    else:
+                        conn = sqlite3.connect(DB_NAME)
+                        cursor = conn.cursor()
+                        cursor.execute("INSERT INTO projetos (nome, status, valor, imagem) VALUES (?, ?, ?, ?)", (f_nome, f_status, f_valor, f_img))
+                        conn.commit()
+                        conn.close()
+                        st.success("Projeto guardado com sucesso!")
+                        st.rerun()
 
     if not df_proj.empty:
         g_cols = st.columns(2)
@@ -211,7 +242,6 @@ with tab2:
     if not df_mo.empty:
         st.markdown("### 📈 Gráfico: Custo Mensal por Trabalhador")
         fig_mo, ax_mo = plt.subplots(figsize=(10, 4))
-        # Corrigido para evitar erro de coluna
         labels_mo = df_mo['nome'].astype(str) + " - " + df_mo['cargo'].astype(str)
         ax_mo.bar(labels_mo, df_mo['custo_mensal'], color='#e67e22')
         ax_mo.set_ylabel('Custo Mensal (EUR)')
@@ -222,28 +252,29 @@ with tab2:
         st.pyplot(fig_mo)
         st.divider()
 
-    with st.expander("➕ Registar Novo Trabalhador"):
-        with st.form("form_trabalhador", clear_on_submit=True):
-            c1, c2 = st.columns(2)
-            with c1:
-                nome = st.text_input("Nome", value="Manuel Ribeiro")
-                idade = st.number_input("Idade", min_value=18, max_value=70, value=32)
-                cargo = st.text_input("Cargo", value="Engenheiro Civil")
-            with c2:
-                qtd = st.number_input("Quantidade", value=1)
-                custo_d = st.number_input("Custo Diário (EUR)", value=90.0)
-                dias = st.number_input("Dias Mensais", value=22)
-                
-            if st.form_submit_button("Guardar Trabalhador"):
-                custo_m = qtd * custo_d * dias
-                conn = sqlite3.connect(DB_NAME)
-                c = conn.cursor()
-                c.execute("INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                          (nome, idade, cargo, qtd, custo_d, dias, custo_m))
-                conn.commit()
-                conn.close()
-                st.success("Trabalhador registado!")
-                st.rerun()
+    if st.session_state["role"] in ["Admin", "Diretor"]:
+        with st.expander("➕ Registar Novo Trabalhador"):
+            with st.form("form_trabalhador", clear_on_submit=True):
+                c1, c2 = st.columns(2)
+                with c1:
+                    nome = st.text_input("Nome", value="Manuel Ribeiro")
+                    idade = st.number_input("Idade", min_value=18, max_value=70, value=32)
+                    cargo = st.text_input("Cargo", value="Engenheiro Civil")
+                with c2:
+                    qtd = st.number_input("Quantidade", value=1)
+                    custo_d = st.number_input("Custo Diário (EUR)", value=90.0)
+                    dias = st.number_input("Dias Mensais", value=22)
+                    
+                if st.form_submit_button("Guardar Trabalhador"):
+                    custo_m = qtd * custo_d * dias
+                    conn = sqlite3.connect(DB_NAME)
+                    c = conn.cursor()
+                    c.execute("INSERT INTO mao_obra (nome, idade, cargo, quantidade, custo_diario, dias, custo_mensal) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                              (nome, idade, cargo, qtd, custo_d, dias, custo_m))
+                    conn.commit()
+                    conn.close()
+                    st.success("Trabalhador registado!")
+                    st.rerun()
                 
     st.dataframe(df_mo, use_container_width=True)
     
@@ -270,23 +301,24 @@ with tab3:
         st.pyplot(fig_st)
         st.divider()
 
-    with st.expander("➕ Registar Material"):
-        with st.form("form_stock", clear_on_submit=True):
-            mat = st.text_input("Material", value="Cabo de Cobre 16mm")
-            q_mat = st.number_input("Quantidade", value=100)
-            uni = st.text_input("Unidade", value="Metros")
-            p_uni = st.number_input("Preço Unitário (EUR)", value=6.50)
-            
-            if st.form_submit_button("Guardar Material"):
-                c_tot = q_mat * p_uni
-                conn = sqlite3.connect(DB_NAME)
-                c = conn.cursor()
-                c.execute("INSERT INTO stock_materiais (material, quantidade, unidade, preco_unitario, custo_total) VALUES (?, ?, ?, ?, ?)",
-                          (mat, q_mat, uni, p_uni, c_tot))
-                conn.commit()
-                conn.close()
-                st.success("Material adicionado ao stock!")
-                st.rerun()
+    if st.session_state["role"] in ["Admin", "Diretor"]:
+        with st.expander("➕ Registar Material"):
+            with st.form("form_stock", clear_on_submit=True):
+                mat = st.text_input("Material", value="Cabo de Cobre 16mm")
+                q_mat = st.number_input("Quantidade", value=100)
+                uni = st.text_input("Unidade", value="Metros")
+                p_uni = st.number_input("Preço Unitário (EUR)", value=6.50)
+                
+                if st.form_submit_button("Guardar Material"):
+                    c_tot = q_mat * p_uni
+                    conn = sqlite3.connect(DB_NAME)
+                    c = conn.cursor()
+                    c.execute("INSERT INTO stock_materiais (material, quantidade, unidade, preco_unitario, custo_total) VALUES (?, ?, ?, ?, ?)",
+                              (mat, q_mat, uni, p_uni, c_tot))
+                    conn.commit()
+                    conn.close()
+                    st.success("Material adicionado ao stock!")
+                    st.rerun()
                 
     st.dataframe(df_st, use_container_width=True)
     
@@ -325,3 +357,27 @@ with tab4:
         
         csv_fl = df_fl.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Descarregar Relatório Financeiro (CSV)", csv_fl, "financeiro_vanguarda.csv", "text/csv")
+
+    st.divider()
+    st.markdown("### 📄 Geração de Relatório Executivo Consolidado")
+    
+    if st.button("Gerar Relatório HTML Consolidado"):
+        html_report = f"""
+        <html>
+        <head><title>Relatório Vanguarda ERP</title></head>
+        <body style="font-family: Arial; background-color: #0d1117; color: white; padding: 20px;">
+            <h1>Vanguarda Engenharia & Obras S.A.</h1>
+            <h3>Relatório Executivo Oficial - Gerado por {st.session_state['utilizador']}</h3>
+            <hr>
+            <h4>Resumo Operacional</h4>
+            <p>Estado da Empresa: <b>Operacional (100% Ativo)</b></p>
+            <p>Eficiência Global: <b>96.4%</b></p>
+            <hr>
+            <h4>Projetos Ativos na Base de Dados</h4>
+            {df_proj.to_html(index=False)}
+        </body>
+        </html>
+        """
+        b64 = base64.b64encode(html_report.encode()).decode()
+        href = f'<a href="data:text/html;base64,{b64}" download="Relatorio_Executivo_Vanguarda.html" target="_blank">📥 Clique aqui para descarregar o Relatório Executivo em HTML</a>'
+        st.markdown(href, unsafe_allow_html=True)
