@@ -1,7 +1,7 @@
 import streamlit as st
 from supabase import create_client
 
-# Configurações do Supabase
+# Configurações do Supabase (URL e Chave corretos e completos)
 SUPABASE_URL = "https://ufgmuayietkuwsobjszx.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ211YXlpZXRrd3NvYmpzengiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyOTE4MTgyODcsImV4cCI6MjEwNzM5NDI4N30.lKPqKNio5OXrrCtexfiuuK1eHQt5WFQbsszF_y860f4"
 
