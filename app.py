@@ -37,11 +37,9 @@ aba1, aba2 = st.tabs(["📤 Upload e Extração", "📊 Histórico de Faturas"])
 with aba1:
     st.subheader("Carregar Documento ou Inserir Texto")
     
-    # Opção de upload normal
     uploaded_file = st.file_uploader("Escolha o documento da fatura (PDF)", type=None)
     
     texto_completo = ""
-    
     if uploaded_file is not None:
         st.success("Ficheiro carregado com sucesso!")
         try:
@@ -52,12 +50,10 @@ with aba1:
         except Exception as e:
             st.warning("Não foi possível ler automaticamente o PDF. Podes colar o texto abaixo.")
             
-    # Caixa de texto de apoio (ideal para telemóvel se o uploader falhar)
     st.markdown("---")
     st.markdown("💡 **Alternativa para Telemóvel:** Podes colar o texto da fatura diretamente aqui em baixo:")
     texto_manual = st.text_area("Texto da Fatura (Extração manual ou colar conteúdo):", value=texto_completo, height=150)
     
-    # Usa o texto manual se estiver preenchido
     texto_final = texto_manual if texto_manual else texto_completo
     
     if texto_final:
@@ -69,6 +65,14 @@ with aba1:
             total_input = st.number_input("Valor Total (€)", value=125.50)
         with col3:
             data_input = st.text_input("Data da Fatura", value="2026-10-13")
+            
+        # SECÇÃO DE GRÁFICO NA APLICAÇÃO
+        st.markdown("### 📊 Representação Gráfica dos Valores")
+        df_chart = pd.DataFrame({
+            "Categoria": ["Valor Total Registado"],
+            "Montante (€)": [total_input]
+        })
+        st.bar_chart(df_chart.set_index("Categoria"))
             
         if st.button("💾 Guardar Fatura na Base de Dados"):
             if supabase:
