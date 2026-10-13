@@ -1,7 +1,13 @@
 import streamlit as st
 import pandas as pd
 from supabase import create_client
-from fpdf import FPDF
+
+# Importação segura do FPDF para evitar erros caso a biblioteca não esteja instalada
+try:
+    from fpdf import FPDF
+    HAS_FPDF = True
+except ImportError:
+    HAS_FPDF = False
 
 st.set_page_config(page_title="Vanguarda ERP", page_icon="🏢", layout="wide")
 
@@ -20,7 +26,7 @@ with st.sidebar:
     
     * **⏱️ Tempo de Desenvolvimento:** 1 Dia (Desenvolvimento Ágil e Inovador)
     * **💎 Valor de Mercado Estimado:** 3.500,00 € a 5.000,00 €
-    * **🚀 Tecnologias:** Python, Streamlit, Supabase, FPDF
+    * **🚀 Tecnologias:** Python, Streamlit, Supabase, Pandas
     """)
     
     st.markdown("---")
@@ -89,6 +95,8 @@ def get_vendas():
     return st.session_state.vendas
 
 def gerar_pdf_vendas(vendas):
+    if not HAS_FPDF:
+        return None
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 16)
@@ -113,7 +121,7 @@ def gerar_pdf_vendas(vendas):
     return pdf.output(dest='S').encode('latin1', errors='ignore')
 
 # Abas principais
-aba_produtos, aba_clientes, aba_vendas = st.tabs(["📦 Produtos & Stock", "👥 Clientes", "🛒 Vendas / POS & PDF"])
+aba_produtos, aba_clientes, aba_vendas = st.tabs(["📦 Produtos & Stock", "👥 Clientes", "🛒 Vendas / POS & Relatório"])
 
 # --- ABA 1: PRODUTOS ---
 with aba_produtos:
@@ -189,9 +197,9 @@ with aba_clientes:
     else:
         st.info("Ainda não existem clientes registados.")
 
-# --- ABA 3: VENDAS / POS & PDF ---
+# --- ABA 3: VENDAS / POS & RELATÓRIO ---
 with aba_vendas:
-    st.header("Registo de Vendas (POS) & Relatórios PDF")
+    st.header("Registo de Vendas (POS) & Relatórios")
     
     prods = get_produtos()
     clis = get_clientes()
@@ -253,15 +261,19 @@ with aba_vendas:
             
         st.markdown("---")
         st.subheader("📄 Exportar Relatório de Vendas")
-        try:
-            pdf_bytes = gerar_pdf_vendas(vendas_list)
-            st.download_button(
-                label="📥 Descarregar Relatório de Vendas em PDF",
-                data=pdf_bytes,
-                file_name="relatorio_vendas_vanguarda.pdf",
-                mime="application/pdf"
-            )
-        except Exception as e:
-            st.error(f"Erro ao gerar PDF: {e}")
+        if HAS_FPDF:
+            try:
+                pdf_bytes = gerar_pdf_vendas(vendas_list)
+                if pdf_bytes:
+                    st.download_button(
+                        label="📥 Descarregar Relatório de Vendas em PDF",
+                        data=pdf_bytes,
+                        file_name="relatorio_vendas_vanguarda.pdf",
+                        mime="application/pdf"
+                    )
+            except Exception as e:
+                st.error(f"Erro ao gerar PDF: {e}")
+        else:
+            st.info("Para ativar o download em PDF, adicione `fpdf2` ao ficheiro `requirements.txt` no GitHub. O resto do ERP está 100% operacional!")
     else:
         st.info("Ainda não existem vendas registadas.")
