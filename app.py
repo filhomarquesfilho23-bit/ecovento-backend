@@ -8,11 +8,11 @@ st.set_page_config(page_title="Vanguarda DocAI", page_icon="📄", layout="wide"
 
 st.title("📄 Vanguarda DocAI - Análise Inteligente de Faturas e Recibos")
 
-# BARRA LATERAL - Configuração do Supabase (Credenciais Reais)
+# BARRA LATERAL - Configuração do Supabase
 with st.sidebar:
     st.header("⚙️ Configuração do Sistema")
     supabase_url = st.text_input("Supabase URL", value="https://rufguaytuamakjdsrx.supabase.co")
-    supabase_key = st.text_input("Supabase Key (anon)", type="password", value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1Zmd1YXl0dWFtYWtqZHNyeCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE2Mzg0MzY0LCJleHAiOjIwMzE5NTQzNjR9.exemplo_chave_segura")
+    supabase_key = st.text_input("Supabase Key (anon)", type="password", value="eyJ...")
     
     st.markdown("---")
     st.markdown("### 💡 Sobre o Projeto")
