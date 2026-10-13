@@ -1,20 +1,33 @@
 import streamlit as st
 import pandas as pd
 from supabase import create_client
+from fpdf import FPDF
 
 st.set_page_config(page_title="Vanguarda ERP", page_icon="🏢", layout="wide")
 
 st.title("🏢 Vanguarda ERP - Sistema de Gestão Integrado")
 
-# --- BARRA LATERAL: CONFIGURAÇÕES E CHAVES SUPABASE ---
+# --- BARRA LATERAL: CONFIGURAÇÕES E APRESENTAÇÃO DO PROJETO ---
 with st.sidebar:
     st.header("⚙️ Configuração do Sistema")
     supabase_url = st.text_input("Supabase URL", value="https://ufgmuayietkuwsobjszx.supabase.co")
     supabase_key = st.text_input("Supabase Key (anon)", type="password", value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ211YXlpZXRrd3NvYmpzengiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyOTE4MTgyODcsImV4cCI6MjEwNzM5NDI4N30.lKPqKNio5OXrrCtexfiuuK1eHQt5WFQbsszF_y860f4")
+    
     st.markdown("---")
-    st.success("✨ ERP totalmente preenchido com gráficos ativos.")
+    st.header("📌 Sobre o Projeto")
+    st.markdown("""
+    **Vanguarda ERP** é uma solução moderna desenvolvida de raiz para otimizar a gestão de stock, clientes e pontos de venda (POS).
+    
+    * **⏱️ Tempo de Desenvolvimento:** 1 Dia (Desenvolvimento Ágil e Inovador)
+    * **💎 Valor de Mercado Estimado:** 3.500,00 € a 5.000,00 €
+    * **🚀 Tecnologias:** Python, Streamlit, Supabase, FPDF
+    """)
+    
+    # Link direto para a aplicação
+    st.markdown("---")
+    st.markdown("🔗 **Link de Acesso Direto:**")
+    st.markdown("[Abrir Vanguarda ERP](https://cno7v.streamlit.app)", unsafe_allow_html=True)
 
-# Ligar ao Supabase de forma segura
 @st.cache_resource
 def init_supabase(url, key):
     try:
@@ -46,7 +59,6 @@ if "vendas" not in st.session_state:
         {"produto": "Caderno A4", "cliente": "Tech Solutions, S.A.", "quantidade": 2, "total": 7.00}
     ]
 
-# Funções de suporte
 def get_produtos():
     if supabase:
         try:
@@ -77,8 +89,32 @@ def get_vendas():
             pass
     return st.session_state.vendas
 
+def gerar_pdf_vendas(vendas):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, "Vanguarda ERP - Relatorio de Vendas", 0, 1, "C")
+    pdf.ln(10)
+    
+    pdf.set_font("Arial", "B", 11)
+    pdf.cell(65, 10, "Produto", 1)
+    pdf.cell(65, 10, "Cliente", 1)
+    pdf.cell(25, 10, "Qtd", 1)
+    pdf.cell(35, 10, "Total (EUR)", 1)
+    pdf.ln()
+    
+    pdf.set_font("Arial", "", 10)
+    for v in vendas:
+        pdf.cell(65, 10, str(v.get("produto", "-")), 1)
+        pdf.cell(65, 10, str(v.get("cliente", "-")), 1)
+        pdf.cell(25, 10, str(v.get("quantidade", 0)), 1)
+        pdf.cell(35, 10, f"{v.get('total', 0):.2f}", 1)
+        pdf.ln()
+        
+    return pdf.output(dest='S').encode('latin1', errors='ignore')
+
 # Abas principais
-aba_produtos, aba_clientes, aba_vendas = st.tabs(["📦 Produtos & Stock", "👥 Clientes", "🛒 Vendas / POS"])
+aba_produtos, aba_clientes, aba_vendas = st.tabs(["📦 Produtos & Stock", "👥 Clientes", "🛒 Vendas / POS & PDF"])
 
 # --- ABA 1: PRODUTOS ---
 with aba_produtos:
@@ -148,15 +184,15 @@ with aba_clientes:
         df_cli = pd.DataFrame(clis)
         st.dataframe(df_cli, use_container_width=True)
         
-        st.markdown("### 📊 Distribuição de Clientes por Localização (Morada)")
+        st.markdown("### 📊 Distribuição de Clientes por Localização")
         if "morada" in df_cli.columns:
             st.bar_chart(df_cli["morada"].value_counts())
     else:
         st.info("Ainda não existem clientes registados.")
 
-# --- ABA 3: VENDAS / POS ---
+# --- ABA 3: VENDAS / POS & PDF ---
 with aba_vendas:
-    st.header("Registo de Vendas (POS)")
+    st.header("Registo de Vendas (POS) & Relatórios PDF")
     
     prods = get_produtos()
     clis = get_clientes()
@@ -212,8 +248,21 @@ with aba_vendas:
         df_vendas = pd.DataFrame(vendas_list)
         st.dataframe(df_vendas, use_container_width=True)
         
-        st.markdown("### 📊 Gráfico de Faturação por Venda / Total (€)")
+        st.markdown("### 📊 Gráfico de Faturação por Venda (€)")
         if "total" in df_vendas.columns:
             st.bar_chart(df_vendas["total"])
+            
+        st.markdown("---")
+        st.subheader("📄 Exportar Relatório de Vendas")
+        try:
+            pdf_bytes = gerar_pdf_vendas(vendas_list)
+            st.download_button(
+                label="📥 Descarregar Relatório de Vendas em PDF",
+                data=pdf_bytes,
+                file_name="relatorio_vendas_vanguarda.pdf",
+                mime="application/pdf"
+            )
+        except Exception as e:
+            st.error(f"Erro ao gerar PDF: {e}")
     else:
         st.info("Ainda não existem vendas registadas.")
