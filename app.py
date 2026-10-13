@@ -35,28 +35,33 @@ if supabase_url and supabase_key and "supabase.co" in supabase_url:
 aba1, aba2 = st.tabs(["📤 Upload e Extração", "📊 Histórico de Faturas"])
 
 with aba1:
-    st.subheader("Carregar Fatura")
-    # type=None aceita qualquer ficheiro e evita erros de compatibilidade no telemóvel
-    uploaded_file = st.file_uploader("Escolha o documento da fatura", type=None)
+    st.subheader("Carregar Documento ou Inserir Texto")
+    
+    # Opção de upload normal
+    uploaded_file = st.file_uploader("Escolha o documento da fatura (PDF)", type=None)
     
     texto_completo = ""
+    
     if uploaded_file is not None:
         st.success("Ficheiro carregado com sucesso!")
-        
         try:
             bytes_data = uploaded_file.getvalue()
-            # Tenta ler como PDF, independentemente do nome do ficheiro
             with pdfplumber.open(io.BytesIO(bytes_data)) as pdf:
                 for page in pdf.pages:
                     texto_completo += page.extract_text() or ""
         except Exception as e:
-            texto_completo = "[Ficheiro carregado - Visualização de texto em formato alternativo]"
-        
-        st.markdown("### 🔍 Texto Extraído do Documento:")
-        st.text_area("Conteúdo bruto detetado:", texto_completo, height=200)
-        
-        # Campos extraídos
-        st.markdown("### 📋 Dados Identificados pela IA:")
+            st.warning("Não foi possível ler automaticamente o PDF. Podes colar o texto abaixo.")
+            
+    # Caixa de texto de apoio (ideal para telemóvel se o uploader falhar)
+    st.markdown("---")
+    st.markdown("💡 **Alternativa para Telemóvel:** Podes colar o texto da fatura diretamente aqui em baixo:")
+    texto_manual = st.text_area("Texto da Fatura (Extração manual ou colar conteúdo):", value=texto_completo, height=150)
+    
+    # Usa o texto manual se estiver preenchido
+    texto_final = texto_manual if texto_manual else texto_completo
+    
+    if texto_final:
+        st.markdown("### 📋 Dados Identificados para Registo:")
         col1, col2, col3 = st.columns(3)
         with col1:
             fornecedor_input = st.text_input("Fornecedor", value="Empresa Exemplo Lda")
@@ -72,7 +77,7 @@ with aba1:
                         "fornecedor": fornecedor_input,
                         "total": total_input,
                         "data_fatura": data_input,
-                        "texto_extraido": texto_completo[:500]
+                        "texto_extraido": texto_final[:500]
                     }
                     supabase.table("faturas").insert(data).execute()
                     st.success("Fatura processada e guardada com sucesso no Supabase!")
