@@ -23,7 +23,6 @@ with st.sidebar:
     * **🚀 Tecnologias:** Python, Streamlit, Supabase, FPDF
     """)
     
-    # Link direto para a aplicação
     st.markdown("---")
     st.markdown("🔗 **Link de Acesso Direto:**")
     st.markdown("[Abrir Vanguarda ERP](https://cno7v.streamlit.app)", unsafe_allow_html=True)
