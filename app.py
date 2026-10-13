@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from supabase import create_client
 
 st.set_page_config(page_title="Vanguarda ERP", page_icon="🏢", layout="wide")
@@ -10,9 +11,8 @@ with st.sidebar:
     st.header("⚙️ Configuração do Sistema")
     supabase_url = st.text_input("Supabase URL", value="https://ufgmuayietkuwsobjszx.supabase.co")
     supabase_key = st.text_input("Supabase Key (anon)", type="password", value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmZ211YXlpZXRrd3NvYmpzengiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyOTE4MTgyODcsImV4cCI6MjEwNzM5NDI4N30.lKPqKNio5OXrrCtexfiuuK1eHQt5WFQbsszF_y860f4")
-    
     st.markdown("---")
-    st.success("✨ Sistema protegido com dados pré-carregados para evitar erros.")
+    st.success("✨ ERP totalmente preenchido com gráficos ativos.")
 
 # Ligar ao Supabase de forma segura
 @st.cache_resource
@@ -24,24 +24,29 @@ def init_supabase(url, key):
 
 supabase = init_supabase(supabase_url, supabase_key)
 
-# --- DADOS PRÉ-PREENCHIDOS EM MEMÓRIA (GARANTE QUE NUNCA FALHA) ---
+# --- DADOS PRÉ-PREENCHIDOS EM MEMÓRIA ---
 if "produtos" not in st.session_state:
     st.session_state.produtos = [
         {"id": 1, "nome": "Caneta Esferográfica", "preco": 1.50, "stock": 100},
         {"id": 2, "nome": "Caderno A4", "preco": 3.50, "stock": 50},
-        {"id": 3, "nome": "Portátil Empresarial", "preco": 750.00, "stock": 10}
+        {"id": 3, "nome": "Portátil Empresarial", "preco": 750.00, "stock": 10},
+        {"id": 4, "nome": "Papel A4 (Resma)", "preco": 4.20, "stock": 80}
     ]
 
 if "clientes" not in st.session_state:
     st.session_state.clientes = [
         {"id": 1, "nome": "Empresa Cliente Exemplo, Lda", "nif": "500123456", "telefone": "912345678", "morada": "Lisboa"},
-        {"id": 2, "nome": "João Silva", "nif": "200987654", "telefone": "961234567", "morada": "Porto"}
+        {"id": 2, "nome": "João Silva", "nif": "200987654", "telefone": "961234567", "morada": "Porto"},
+        {"id": 3, "nome": "Tech Solutions, S.A.", "nif": "509888777", "telefone": "933444555", "morada": "Coimbra"}
     ]
 
 if "vendas" not in st.session_state:
-    st.session_state.vendas = []
+    st.session_state.vendas = [
+        {"produto": "Caneta Esferográfica", "cliente": "João Silva", "quantidade": 5, "total": 7.50},
+        {"produto": "Caderno A4", "cliente": "Tech Solutions, S.A.", "quantidade": 2, "total": 7.00}
+    ]
 
-# Funções de suporte com fallback seguro
+# Funções de suporte
 def get_produtos():
     if supabase:
         try:
@@ -81,9 +86,9 @@ with aba_produtos:
     
     with st.expander("➕ Adicionar Novo Produto", expanded=False):
         with st.form("form_produto"):
-            nome_prod = st.text_input("Nome do Produto", value="Artigo Exemplo")
-            preco_prod = st.number_input("Preço Unitário (€)", min_value=0.0, value=12.50, format="%.2f")
-            stock_prod = st.number_input("Quantidade em Stock", min_value=0, value=30, step=1)
+            nome_prod = st.text_input("Nome do Produto", value="Rato Sem Fios")
+            preco_prod = st.number_input("Preço Unitário (€)", min_value=0.0, value=19.99, format="%.2f")
+            stock_prod = st.number_input("Quantidade em Stock", min_value=0, value=45, step=1)
             btn_prod = st.form_submit_button("Guardar Produto")
             
             if btn_prod:
@@ -103,7 +108,11 @@ with aba_produtos:
     st.subheader("Lista de Produtos em Stock")
     prods = get_produtos()
     if prods:
-        st.dataframe(prods, use_container_width=True)
+        df_prod = pd.DataFrame(prods)
+        st.dataframe(df_prod, use_container_width=True)
+        
+        st.markdown("### 📊 Gráfico de Stock por Produto")
+        st.bar_chart(df_prod.set_index("nome")["stock"])
     else:
         st.info("Ainda não existem produtos registados.")
 
@@ -113,10 +122,10 @@ with aba_clientes:
     
     with st.expander("➕ Registar Novo Cliente", expanded=False):
         with st.form("form_cliente"):
-            nome_cli = st.text_input("Nome do Cliente / Empresa", value="Novo Cliente Exemplo")
-            nif_cli = st.text_input("NIF", value="509999888")
-            tel_cli = st.text_input("Telefone", value="931234567")
-            morada_cli = st.text_input("Morada", value="Coimbra")
+            nome_cli = st.text_input("Nome do Cliente / Empresa", value="Inovação Digital, Lda")
+            nif_cli = st.text_input("NIF", value="508888999")
+            tel_cli = st.text_input("Telefone", value="919888777")
+            morada_cli = st.text_input("Morada", value="Braga")
             btn_cli = st.form_submit_button("Guardar Cliente")
             
             if btn_cli:
@@ -136,7 +145,12 @@ with aba_clientes:
     st.subheader("Lista de Clientes")
     clis = get_clientes()
     if clis:
-        st.dataframe(clis, use_container_width=True)
+        df_cli = pd.DataFrame(clis)
+        st.dataframe(df_cli, use_container_width=True)
+        
+        st.markdown("### 📊 Distribuição de Clientes por Localização (Morada)")
+        if "morada" in df_cli.columns:
+            st.bar_chart(df_cli["morada"].value_counts())
     else:
         st.info("Ainda não existem clientes registados.")
 
@@ -192,9 +206,14 @@ with aba_vendas:
                 st.success(f"Venda registada com sucesso! Total: {total_venda:.2f} €")
                 st.rerun()
                 
-    st.subheader("Histórico de Vendas")
+    st.subheader("Histórico de Vendas e Faturação")
     vendas_list = get_vendas()
     if vendas_list:
-        st.dataframe(vendas_list, use_container_width=True)
+        df_vendas = pd.DataFrame(vendas_list)
+        st.dataframe(df_vendas, use_container_width=True)
+        
+        st.markdown("### 📊 Gráfico de Faturação por Venda / Total (€)")
+        if "total" in df_vendas.columns:
+            st.bar_chart(df_vendas["total"])
     else:
         st.info("Ainda não existem vendas registadas.")
