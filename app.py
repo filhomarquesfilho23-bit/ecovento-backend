@@ -18,9 +18,14 @@ st.set_page_config(
 
 st.title("📄 Vanguarda DocAI - Análise Inteligente de Faturas e Recibos")
 
-# BARRA LATERAL - Configuração do Supabase
+# BARRA LATERAL - Configuração do Supabase com Link Direto
 with st.sidebar:
     st.header("⚙️ Configuração do Sistema")
+    
+    # Link direto para o Supabase
+    st.markdown("[🔗 Abrir o Painel do Supabase](https://supabase.com)", unsafe_allow_html=True)
+    st.markdown("---")
+    
     supabase_url = st.text_input("Supabase URL", value="")
     supabase_key = st.text_input("Supabase Key (anon)", type="password", value="")
     
