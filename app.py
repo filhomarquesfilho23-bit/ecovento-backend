@@ -1,7 +1,11 @@
 import streamlit as st
-from supabase import create_client, Client
 import pandas as pd
 import pdfplumber
+
+try:
+    from supabase import create_client, Client
+except ImportError:
+    pass
 
 # Configuração da Página
 st.set_page_config(page_title="Vanguarda DocAI", page_icon="📄", layout="wide")
@@ -11,24 +15,20 @@ st.title("📄 Vanguarda DocAI - Análise Inteligente de Faturas e Recibos")
 # BARRA LATERAL - Configuração do Supabase
 with st.sidebar:
     st.header("⚙️ Configuração do Sistema")
-    supabase_url = st.text_input("Supabase URL", value="https://rufguaytuamakjdsrx.supabase.co")
-    supabase_key = st.text_input("Supabase Key (anon)", type="password", value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    supabase_url = st.text_input("Supabase URL", value="")
+    supabase_key = st.text_input("Supabase Key (anon)", type="password", value="")
     
     st.markdown("---")
     st.markdown("### 💡 Sobre o Projeto")
     st.markdown("Plataforma avançada de IA e extração automática de dados de faturas para otimização contabilística.")
 
-# Função segura para inicializar o Supabase sem crashar
-@st.cache_resource
-def init_supabase(url, key):
-    if not url or "O_TEU_PROJETO" in url or "exemplo" in url.lower():
-        return None
+# Inicialização segura do Supabase (só liga se preencheres com um URL válido)
+supabase = None
+if supabase_url and supabase_key and "supabase.co" in supabase_url:
     try:
-        return create_client(url, key)
+        supabase = create_client(supabase_url, supabase_key)
     except Exception:
-        return None
-
-supabase = init_supabase(supabase_url, supabase_key)
+        supabase = None
 
 # CORPO PRINCIPAL - Abas da Aplicação
 aba1, aba2 = st.tabs(["📤 Upload e Extração", "📊 Histórico de Faturas"])
@@ -73,7 +73,7 @@ with aba1:
                 except Exception as e:
                     st.error(f"Erro ao guardar na base de dados: {e}")
             else:
-                st.warning("⚠️ Por favor, insere o teu URL real do Supabase na barra lateral para poderes gravar.")
+                st.warning("⚠️ Para guardar na base de dados, insere o teu URL e Chave real do Supabase na barra lateral.")
 
 with aba2:
     st.subheader("Histórico de Faturas Processadas")
@@ -89,4 +89,4 @@ with aba2:
         except Exception as e:
             st.error(f"Erro ao carregar o histórico: {e}")
     else:
-        st.info("ℹ️ Insere o URL e a chave correta do Supabase na barra lateral para visualizar o histórico.")
+        st.info("ℹ️ Insere o URL e a chave real do Supabase na barra lateral para visualizar o histórico de faturas.")
