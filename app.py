@@ -35,21 +35,25 @@ if supabase_url and supabase_key and "supabase.co" in supabase_url:
 aba1, aba2 = st.tabs(["📤 Upload e Extração", "📊 Histórico de Faturas"])
 
 with aba1:
-    st.subheader("Carregar Fatura (PDF)")
-    uploaded_file = st.file_uploader("Escolha um ficheiro PDF de fatura", type=["pdf"])
+    st.subheader("Carregar Fatura (PDF ou Imagem)")
+    # Alargamos os tipos aceites para evitar bloqueios no telemóvel
+    uploaded_file = st.file_uploader("Escolha um ficheiro PDF ou imagem", type=["pdf", "png", "jpg", "jpeg"])
     
     texto_completo = ""
     if uploaded_file is not None:
         st.success("Ficheiro carregado com sucesso!")
         
         try:
-            # Leitura segura do PDF com BytesIO
-            bytes_data = uploaded_file.getvalue()
-            with pdfplumber.open(io.BytesIO(bytes_data)) as pdf:
-                for page in pdf.pages:
-                    texto_completo += page.extract_text() or ""
+            # Verifica se é PDF para extrair texto com pdfplumber
+            if uploaded_file.name.lower().endswith(".pdf"):
+                bytes_data = uploaded_file.getvalue()
+                with pdfplumber.open(io.BytesIO(bytes_data)) as pdf:
+                    for page in pdf.pages:
+                        texto_completo += page.extract_text() or ""
+            else:
+                texto_completo = "[Ficheiro de imagem carregado - OCR em desenvolvimento]"
         except Exception as e:
-            st.error(f"Erro ao processar o PDF: {e}")
+            st.error(f"Erro ao processar o ficheiro: {e}")
         
         st.markdown("### 🔍 Texto Extraído do Documento:")
         st.text_area("Conteúdo bruto detetado:", texto_completo, height=200)
