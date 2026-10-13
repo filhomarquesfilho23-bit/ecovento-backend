@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import pdfplumber
+import io
 
 try:
     from supabase import create_client, Client
@@ -22,7 +23,7 @@ with st.sidebar:
     st.markdown("### 💡 Sobre o Projeto")
     st.markdown("Plataforma avançada de IA e extração automática de dados de faturas para otimização contabilística.")
 
-# Inicialização segura do Supabase (só liga se preencheres com um URL válido)
+# Inicialização segura do Supabase
 supabase = None
 if supabase_url and supabase_key and "supabase.co" in supabase_url:
     try:
@@ -41,10 +42,14 @@ with aba1:
     if uploaded_file is not None:
         st.success("Ficheiro carregado com sucesso!")
         
-        # Leitura do PDF
-        with pdfplumber.open(uploaded_file) as pdf:
-            for page in pdf.pages:
-                texto_completo += page.extract_text() or ""
+        try:
+            # Leitura segura do PDF com BytesIO
+            bytes_data = uploaded_file.getvalue()
+            with pdfplumber.open(io.BytesIO(bytes_data)) as pdf:
+                for page in pdf.pages:
+                    texto_completo += page.extract_text() or ""
+        except Exception as e:
+            st.error(f"Erro ao processar o PDF: {e}")
         
         st.markdown("### 🔍 Texto Extraído do Documento:")
         st.text_area("Conteúdo bruto detetado:", texto_completo, height=200)
