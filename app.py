@@ -9,7 +9,12 @@ except ImportError:
     pass
 
 # Configuração da Página
-st.set_page_config(page_title="Vanguarda DocAI", page_icon="📄", layout="wide")
+st.set_page_config(
+    page_title="Vanguarda DocAI",
+    page_icon="📄",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 st.title("📄 Vanguarda DocAI - Análise Inteligente de Faturas e Recibos")
 
@@ -66,8 +71,8 @@ with aba1:
         with col3:
             data_input = st.text_input("Data da Fatura", value="2026-10-13")
             
-        # SECÇÃO DE GRÁFICO NA APLICAÇÃO
-        st.markdown("### 📊 Representação Gráfica dos Valores")
+        # Gráfico individual da fatura atual
+        st.markdown("### 📊 Representação Gráfica do Valor Atual")
         df_chart = pd.DataFrame({
             "Categoria": ["Valor Total Registado"],
             "Montante (€)": [total_input]
@@ -91,17 +96,34 @@ with aba1:
                 st.warning("⚠️ Para guardar na base de dados, insere o teu URL e Chave real do Supabase na barra lateral.")
 
 with aba2:
-    st.subheader("Histórico de Faturas Processadas")
+    st.subheader("Histórico e Evolução Mensal de Faturas")
     if supabase:
         try:
             response = supabase.table("faturas").select("*").execute()
             dados = response.data
             if dados:
                 df_faturas = pd.DataFrame(dados)
+                
+                # Tratamento de datas e valores para o gráfico mensal
+                if "data_fatura" in df_faturas.columns and "total" in df_faturas.columns:
+                    df_faturas["data_fatura"] = pd.to_datetime(df_faturas["data_fatura"], errors="coerce")
+                    df_faturas["Mes"] = df_faturas["data_fatura"].dt.to_period("M").astype(str)
+                    
+                    # Agrupamento por mês
+                    df_mensal = df_faturas.groupby("Mes")["total"].sum().reset_index()
+                    df_mensal = df_mensal.sort_values("Mes")
+                    
+                    st.markdown("### 📈 Evolução Mensal de Despesas (€)")
+                    if not df_mensal.empty and df_mensal["total"].sum() > 0:
+                        st.bar_chart(df_mensal.set_index("Mes")["total"])
+                    else:
+                        st.info("Ainda não há dados suficientes para gerar o gráfico mensal.")
+                
+                st.markdown("### 📋 Registo Detalhado")
                 st.dataframe(df_faturas, use_container_width=True)
             else:
                 st.info("Ainda não existem faturas guardadas na base de dados.")
         except Exception as e:
             st.error(f"Erro ao carregar o histórico: {e}")
     else:
-        st.info("ℹ️ Insere o URL e a chave real do Supabase na barra lateral para visualizar o histórico de faturas.")
+        st.info("ℹ️ Insere o URL e a chave real do Supabase na barra lateral para visualizar o histórico e o gráfico mensal.")
