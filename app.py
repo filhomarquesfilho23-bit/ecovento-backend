@@ -22,7 +22,6 @@ st.title("📄 Vanguarda DocAI - Análise Inteligente de Faturas e Recibos")
 with st.sidebar:
     st.header("⚙️ Configuração do Sistema")
     
-    # Link direto para o Supabase
     st.markdown("[🔗 Abrir o Painel do Supabase](https://supabase.com)", unsafe_allow_html=True)
     st.markdown("---")
     
@@ -98,7 +97,7 @@ with aba1:
                 except Exception as e:
                     st.error(f"Erro ao guardar na base de dados: {e}")
             else:
-                st.warning("⚠️ Para guardar na base de dados, insere o teu URL e Chave real do Supabase na barra lateral.")
+                st.warning("⚠️ Para guardar na base de dados, insere o teu URL e Chave real do Supabase na barra lateral. Podes aceder diretamente ao [Painel do Supabase](https://supabase.com).")
 
 with aba2:
     st.subheader("Histórico e Evolução Mensal de Faturas")
@@ -131,4 +130,4 @@ with aba2:
         except Exception as e:
             st.error(f"Erro ao carregar o histórico: {e}")
     else:
-        st.info("ℹ️ Insere o URL e a chave real do Supabase na barra lateral para visualizar o histórico e o gráfico mensal.")
+        st.info("ℹ️ Insere o URL e a chave real do Supabase na barra lateral para visualizar o histórico e o gráfico mensal. Podes aceder ao [Painel do Supabase](https://supabase.com).")
