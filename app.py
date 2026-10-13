@@ -12,14 +12,17 @@ st.title("📄 Vanguarda DocAI - Análise Inteligente de Faturas e Recibos")
 with st.sidebar:
     st.header("⚙️ Configuração do Sistema")
     supabase_url = st.text_input("Supabase URL", value="https://rufguaytuamakjdsrx.supabase.co")
-    supabase_key = st.text_input("Supabase Key (anon)", type="password", value="eyJ...")
+    supabase_key = st.text_input("Supabase Key (anon)", type="password", value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     
     st.markdown("---")
     st.markdown("### 💡 Sobre o Projeto")
     st.markdown("Plataforma avançada de IA e extração automática de dados de faturas para otimização contabilística.")
 
+# Função segura para inicializar o Supabase sem crashar
 @st.cache_resource
 def init_supabase(url, key):
+    if not url or "O_TEU_PROJETO" in url or "exemplo" in url.lower():
+        return None
     try:
         return create_client(url, key)
     except Exception:
@@ -70,7 +73,7 @@ with aba1:
                 except Exception as e:
                     st.error(f"Erro ao guardar na base de dados: {e}")
             else:
-                st.warning("Ligação ao Supabase não configurada corretamente.")
+                st.warning("⚠️ Por favor, insere o teu URL real do Supabase na barra lateral para poderes gravar.")
 
 with aba2:
     st.subheader("Histórico de Faturas Processadas")
@@ -86,5 +89,4 @@ with aba2:
         except Exception as e:
             st.error(f"Erro ao carregar o histórico: {e}")
     else:
-        df_faturas = pd.DataFrame(columns=["ID", "Fornecedor", "Total (€)", "Data", "Estado"])
-        st.dataframe(df_faturas, use_container_width=True)
+        st.info("ℹ️ Insere o URL e a chave correta do Supabase na barra lateral para visualizar o histórico.")
