@@ -1,13 +1,7 @@
 import streamlit as st
 import pandas as pd
 from supabase import create_client
-
-# Importação segura do FPDF
-try:
-    from fpdf import FPDF
-    HAS_FPDF = True
-except ImportError:
-    HAS_FPDF = False
+from fpdf import FPDF
 
 st.set_page_config(page_title="Vanguarda ERP", page_icon="🏢", layout="wide")
 
@@ -26,7 +20,7 @@ with st.sidebar:
     
     * **⏱️ Tempo de Desenvolvimento:** 1 Dia (Desenvolvimento Ágil e Inovador)
     * **💎 Valor de Mercado Estimado:** 3.500,00 € a 5.000,00 €
-    * **🚀 Tecnologias:** Python, Streamlit, Supabase, Pandas
+    * **🚀 Tecnologias:** Python, Streamlit, Supabase, Pandas, FPDF
     """)
 
 @st.cache_resource
@@ -91,30 +85,34 @@ def get_vendas():
     return st.session_state.vendas
 
 def gerar_pdf_vendas(vendas):
-    if not HAS_FPDF:
-        return None
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, "Vanguarda ERP - Relatorio de Vendas", 0, 1, "C")
-    pdf.ln(10)
-    
-    pdf.set_font("Arial", "B", 11)
-    pdf.cell(65, 10, "Produto", 1)
-    pdf.cell(65, 10, "Cliente", 1)
-    pdf.cell(25, 10, "Qtd", 1)
-    pdf.cell(35, 10, "Total (EUR)", 1)
-    pdf.ln()
-    
-    pdf.set_font("Arial", "", 10)
-    for v in vendas:
-        pdf.cell(65, 10, str(v.get("produto", "-")), 1)
-        pdf.cell(65, 10, str(v.get("cliente", "-")), 1)
-        pdf.cell(25, 10, str(v.get("quantidade", 0)), 1)
-        pdf.cell(35, 10, f"{v.get('total', 0):.2f}", 1)
+    try:
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(0, 10, "Vanguarda ERP - Relatorio de Vendas", 0, 1, "C")
+        pdf.ln(10)
+        
+        pdf.set_font("Arial", "B", 11)
+        pdf.cell(65, 10, "Produto", 1)
+        pdf.cell(65, 10, "Cliente", 1)
+        pdf.cell(25, 10, "Qtd", 1)
+        pdf.cell(35, 10, "Total (EUR)", 1)
         pdf.ln()
         
-    return pdf.output(dest='S').encode('latin1', errors='ignore')
+        pdf.set_font("Arial", "", 10)
+        for v in vendas:
+            pdf.cell(65, 10, str(v.get("produto", "-")), 1)
+            pdf.cell(65, 10, str(v.get("cliente", "-")), 1)
+            pdf.cell(25, 10, str(v.get("quantidade", 0)), 1)
+            pdf.cell(35, 10, f"{v.get('total', 0):.2f}", 1)
+            pdf.ln()
+            
+        out = pdf.output()
+        if isinstance(out, str):
+            return out.encode('latin1', errors='ignore')
+        return bytes(out)
+    except Exception:
+        return None
 
 # Abas principais
 aba_produtos, aba_clientes, aba_vendas = st.tabs(["📦 Produtos & Stock", "👥 Clientes", "🛒 Vendas / POS & Relatório"])
@@ -257,19 +255,13 @@ with aba_vendas:
             
         st.markdown("---")
         st.subheader("📄 Exportar Relatório de Vendas")
-        if HAS_FPDF:
-            try:
-                pdf_bytes = gerar_pdf_vendas(vendas_list)
-                if pdf_bytes:
-                    st.download_button(
-                        label="📥 Descarregar Relatório de Vendas em PDF",
-                        data=pdf_bytes,
-                        file_name="relatorio_vendas_vanguarda.pdf",
-                        mime="application/pdf"
-                    )
-            except Exception as e:
-                st.error(f"Erro ao gerar PDF: {e}")
-        else:
-            st.info("Para ativar o download em PDF, adicione `fpdf2` ao ficheiro `requirements.txt` no GitHub. O resto do ERP está 100% operacional!")
+        pdf_bytes = gerar_pdf_vendas(vendas_list)
+        if pdf_bytes:
+            st.download_button(
+                label="📥 Descarregar Relatório de Vendas em PDF",
+                data=pdf_bytes,
+                file_name="relatorio_vendas_vanguarda.pdf",
+                mime="application/pdf"
+            )
     else:
         st.info("Ainda não existem vendas registadas.")
