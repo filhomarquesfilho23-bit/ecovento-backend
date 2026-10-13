@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from supabase import create_client
 
-# Importação segura do FPDF para evitar erros caso a biblioteca não esteja instalada
+# Importação segura do FPDF
 try:
     from fpdf import FPDF
     HAS_FPDF = True
@@ -28,10 +28,6 @@ with st.sidebar:
     * **💎 Valor de Mercado Estimado:** 3.500,00 € a 5.000,00 €
     * **🚀 Tecnologias:** Python, Streamlit, Supabase, Pandas
     """)
-    
-    st.markdown("---")
-    st.markdown("🔗 **Link de Acesso Direto:**")
-    st.markdown("[Abrir Vanguarda ERP](https://cno7v.streamlit.app)", unsafe_allow_html=True)
 
 @st.cache_resource
 def init_supabase(url, key):
