@@ -6,16 +6,16 @@ import streamlit.components.v1 as components
 
 # Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux Voice Ultimate",
+    page_title="OmniFlux Voice Assistant",
     page_icon="⚡",
     layout="centered"
 )
 
 # --- CAPTURAR VOZ VIA URL PARAMS ---
 query_params = st.query_params
+intencao_voz = ""
 if "intencao" in query_params:
-    st.session_state.intencao_atual = query_params["intencao"]
-    # Limpar parâmetro para evitar loops
+    intencao_voz = query_params["intencao"]
     st.query_params.clear()
 
 # --- BASE DE DADOS PERSISTENTE (SQLite) ---
@@ -42,7 +42,7 @@ def obter_notas():
     conn.close()
     return df
 
-# --- ESTILO AZUL FUTURISTA & VOZ (CUSTOM CSS) ---
+# --- ESTILO AZUL FUTURISTA & OCULTAR INPUT MANUAL ---
 st.markdown("""
     <style>
     .stApp {
@@ -53,7 +53,10 @@ st.markdown("""
         color: #38bdf8 !important;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    .stTextInput input, .stTextArea textarea {
+    .stTextInput {
+        display: none !important;
+    }
+    .stTextArea textarea {
         background-color: #1e293b !important;
         color: #ffffff !important;
         border: 1px solid #38bdf8 !important;
@@ -77,24 +80,24 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚡ OmniFlux Voice")
-st.caption("Sistema Operativo Líquido com Comandos por Voz Instantâneos.")
+st.title("⚡ OmniFlux Assistant")
+st.caption("Sistema Operativo Líquido acionado exclusivamente por Voz.")
 
-# --- COMPONENTE DE VOZ ROBUSTO (RELOAD VIA URL) ---
+# --- COMPONENTE DE VOZ NATIVO ---
 st.markdown("### 🎙️ Comando por Voz Inteligente")
 voice_component = """
-<div style="text-align: center; margin-bottom: 15px;">
-    <button onclick="startListening()" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 25px; padding: 12px 24px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); cursor: pointer; width: 100%;">
-        🎤 Tocar para Falar com o OmniFlux
+<div style="text-align: center; margin-bottom: 20px;">
+    <button onclick="startListening()" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 30px; padding: 15px 30px; font-weight: bold; font-size: 18px; box-shadow: 0 6px 20px rgba(244, 63, 94, 0.5); cursor: pointer; width: 100%;">
+        🎤 Tocar para Falar
     </button>
-    <p id="status" style="color: #38bdf8; font-size: 13px; margin-top: 8px;">Toque no botão e diga o que pretende...</p>
+    <p id="status" style="color: #38bdf8; font-size: 14px; margin-top: 10px;">Toque no botão e diga o que pretende fazer...</p>
 </div>
 
 <script>
 function startListening() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("O seu browser não suporta reconhecimento de voz direto. Use o campo de texto abaixo.");
+        alert("O seu browser não suporta reconhecimento de voz direto.");
         return;
     }
     const recognition = new SpeechRecognition();
@@ -105,13 +108,12 @@ function startListening() {
     
     recognition.onresult = function(event) {
         const speechToText = event.results[0][0].transcript;
-        document.getElementById("status").innerText = "Detetado: " + speechToText + " (A carregar...)";
+        document.getElementById("status").innerText = "Comando: " + speechToText + " (A materializar...)";
         
-        // Recarregar a página passando o texto na URL para o Streamlit apanhar logo
         setTimeout(() => {
             const baseUrl = window.parent.location.origin + window.parent.location.pathname;
             window.parent.location.href = baseUrl + '?intencao=' + encodeURIComponent(speechToText);
-        }, 400);
+        }, 300);
     };
     
     recognition.onerror = function(event) {
@@ -122,23 +124,16 @@ function startListening() {
 }
 </script>
 """
-components.html(voice_component, height=100)
+components.html(voice_component, height=120)
 
-# --- CAMPO DE INTENÇÃO ABSOLUTA ---
+# Gerir o estado da intenção com base exclusivamente na voz
 if "intencao_atual" not in st.session_state:
     st.session_state.intencao_atual = ""
 
-st.markdown("### 🧠 Campo de Intenção Global")
-intencao_utilizador = st.text_input(
-    "O que desejas realizar hoje?",
-    value=st.session_state.intencao_atual,
-    placeholder="Ex: analisar finanças, escrever uma nota, gerir equipa..."
-)
-
-st.session_state.intencao_atual = intencao_utilizador
+if intencao_voz:
+    st.session_state.intencao_atual = intencao_voz
 
 def motor_ia_semantico(texto):
-    """Motor de intenção inteligente otimizado."""
     t = texto.lower()
     if "finan" in t or "dinheiro" in t or "gastos" in t or "orçamento" in t or "fatura" in t:
         return "financeiro"
@@ -151,35 +146,39 @@ def motor_ia_semantico(texto):
     else:
         return "geral"
 
-modulo_ativo = motor_ia_semantico(intencao_utilizador) if intencao_utilizador else "geral"
+modulo_ativo = motor_ia_semantico(st.session_state.intencao_atual) if st.session_state.intencao_atual else "geral"
+
+# Mostrar o último comando reconhecido por voz de forma elegante
+if st.session_state.intencao_atual:
+    st.info(f"🧠 **Última Intenção de Voz Detetada:** \"{st.session_state.intencao_atual}\"")
 
 st.markdown("---")
 
 # --- MATERIALIZAÇÃO LÍQUIDA DINÂMICA ---
 if modulo_ativo == "financeiro":
-    st.success("💧 Módulo Financeiro Materializado por Voz")
+    st.success("💧 Módulo Financeiro Materializado Instantaneamente por Voz")
     st.metric("Saldo Global Ativo", "4.850,00 €", "+18.2%")
     st.bar_chart({"Jan": 1500, "Fev": 2800, "Mar": 4850})
     limite = st.slider("Ajustar Limite de Tesouraria (€)", 0, 10000, 4000)
     st.info(f"Limite otimizado: {limite} €")
 
 elif modulo_ativo == "recursos_humanos":
-    st.warning("💧 Módulo de Gestão de Talento Materializado por Voz")
+    st.warning("💧 Módulo de Gestão de Talento Materializado Instantaneamente por Voz")
     cargo = st.text_input("Cargo Pretendido", value="Arquiteto de Sistemas IA")
     vencimento = st.number_input("Orçamento Mensal Bruto (€)", value=3000)
     if st.button("Simular Contrato Anual"):
         st.success(f"Custo total anual projetado para {cargo}: {vencimento * 14} € (Subsídios incluídos).")
 
 elif modulo_ativo == "tarefas":
-    st.info("💧 Módulo de Tarefas e Execução Materializado por Voz")
+    st.info("💧 Módulo de Tarefas e Execução Materializado Instantaneamente por Voz")
     nova_tarefa = st.text_input("Nova Tarefa Estratégica:")
     if st.button("Guardar Tarefa"):
         st.toast("Tarefa guardada com sucesso!", icon="✅")
-    st.checkbox("Integrar comandos por voz instantâneos no OmniFlux", value=True)
+    st.checkbox("Operação 100% por voz no OmniFlux", value=True)
     st.checkbox("Validar transições líquidas no telemóvel", value=True)
 
 elif modulo_ativo == "notas":
-    st.success("💧 Módulo de Memória Persistente Materializado por Voz")
+    st.success("💧 Módulo de Memória Persistente Materializado Instantaneamente por Voz")
     texto_nota = st.text_area("Regista o teu pensamento:", placeholder="Escreve aqui a tua ideia...")
     if st.button("Salvar na Base de Dados Global"):
         if texto_nota.strip():
@@ -197,9 +196,7 @@ elif modulo_ativo == "notas":
         st.write("Ainda não existem notas guardadas.")
 
 else:
-    st.info("💡 **OmniFlux Ativo:** Toca no botão vermelho de voz acima e dita uma ordem (ex: *'analisar finanças'* ou *'escrever nota'*) para materializar a ferramenta ideal na hora.")
-    st.markdown("### 📝 Espaço de Trabalho Fluido")
-    st.text_area("Rascunho Rápido:", height=100, placeholder="Escreve notas rápidas...")
+    st.info("💡 **OmniFlux Pronto:** Toca no botão vermelho de voz acima e dita a tua ordem (ex: *'analisar finanças'* ou *'escrever nota'*) para materializar a ferramenta ideal na hora, sem precisar de escrever nada!")
 
 st.markdown("---")
-st.caption("OmniFlux Voice Ultimate • Voz Instantânea + IA Semântica + SQLite ⚡")
+st.caption("OmniFlux Voice Assistant • 100% Autónomo por Voz ⚡")
