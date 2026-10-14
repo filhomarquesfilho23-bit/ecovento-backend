@@ -3,26 +3,23 @@ import streamlit as st
 # Configuração da página
 st.set_page_config(page_title="OmniFlux Pro", page_icon="⚡", layout="centered")
 
-# Estilo CSS Personalizado (Tom Azul Dinâmico)
+# Estilo CSS Personalizado com !important para forçar a cor azul nos botões
 st.markdown("""
     <style>
-    /* Estilização personalizada para os botões com tom azul moderno */
     .stButton>button {
-        background-color: #1e3d59;
-        color: #ffffff;
-        border: 2px solid #00bfff;
-        border-radius: 10px;
-        font-weight: bold;
-        transition: all 0.3s ease;
+        background-color: #007acc !important;
+        color: #ffffff !important;
+        border: 2px solid #00bfff !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
     }
     .stButton>button:hover {
-        background-color: #00bfff;
-        color: #0e1117;
-        border-color: #00bfff;
+        background-color: #00bfff !important;
+        color: #0e1117 !important;
+        border-color: #ffffff !important;
     }
-    /* Estilo para métricas */
     [data-testid="stMetricValue"] {
-        color: #00bfff;
+        color: #00bfff !important;
     }
     </style>
 """, unsafe_allow_html=True)
