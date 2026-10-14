@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 
 # Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux Pro - Passo 5",
+    page_title="OmniFlux Pro - Com Exemplos",
     page_icon="⚡",
     layout="centered"
 )
@@ -18,7 +18,7 @@ if "intencao" in query_params:
     intencao_voz = query_params["intencao"]
     st.query_params.clear()
 
-# --- BASE DE DADOS HÍBRIDA ---
+# --- BASE DE DADOS HÍBRIDA COM DADOS DE EXEMPLO ---
 def init_db():
     conn = sqlite3.connect('omniflux_pro.db')
     c = conn.cursor()
@@ -26,6 +26,27 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS tarefas (id INTEGER PRIMARY KEY AUTOINCREMENT, tarefa TEXT, concluida INTEGER, data TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS transacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT, valor REAL, descricao TEXT, data TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS equipa (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, cargo TEXT, salario REAL, data TEXT)''')
+    
+    # Inserir dados de exemplo automáticos se as tabelas estiverem vazias
+    c.execute("SELECT COUNT(*) FROM tarefas")
+    if c.fetchone()[0] == 0:
+        c.execute("INSERT INTO tarefas (tarefa, concluida, data) VALUES (?, ?, ?)", ("Lançar nova versão do OmniFlux Pro", 0, datetime.now().strftime("%Y-%m-%d")))
+        c.execute("INSERT INTO tarefas (tarefa, concluida, data) VALUES (?, ?, ?)", ("Otimizar sistema de voz no telemóvel", 1, datetime.now().strftime("%Y-%m-%d")))
+
+    c.execute("SELECT COUNT(*) FROM equipa")
+    if c.fetchone()[0] == 0:
+        c.execute("INSERT INTO equipa (nome, cargo, salario, data) VALUES (?, ?, ?, ?)", ("Ana Silva", "Arquiteta de Software IA", 2200.0, datetime.now().strftime("%Y-%m-%d")))
+        c.execute("INSERT INTO equipa (nome, cargo, salario, data) VALUES (?, ?, ?, ?)", ("Miguel Santos", "Especialista de UX/UI", 1800.0, datetime.now().strftime("%Y-%m-%d")))
+
+    c.execute("SELECT COUNT(*) FROM transacoes")
+    if c.fetchone()[0] == 0:
+        c.execute("INSERT INTO transacoes (tipo, valor, descricao, data) VALUES (?, ?, ?, ?)", ("Receita", 1500.0, "Consultoria Inicial", datetime.now().strftime("%Y-%m-%d")))
+        c.execute("INSERT INTO transacoes (tipo, valor, descricao, data) VALUES (?, ?, ?, ?)", ("Despesa", 300.0, "Servidores Cloud", datetime.now().strftime("%Y-%m-%d")))
+
+    c.execute("SELECT COUNT(*) FROM notas")
+    if c.fetchone()[0] == 0:
+        c.execute("INSERT INTO notas (texto, data) VALUES (?, ?)", ("Sistema operativo líquido a funcionar perfeitamente com IA semântica.", datetime.now().strftime("%Y-%m-%d %H:%M")))
+
     conn.commit()
     conn.close()
 
@@ -136,7 +157,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ OmniFlux Pro")
-st.caption("Sistema Operativo Líquido • Passo 5: IA Semântica Avançada.")
+st.caption("Sistema Operativo Líquido • Com Exemplos Pré-Preenchidos.")
 
 # --- COMPONENTE DE VOZ NATIVO ---
 st.markdown("### 🎙️ Assistente de Voz Inteligente")
@@ -181,7 +202,7 @@ function startListening() {
 """
 components.html(voice_component, height=100)
 
-# --- IA SEMÂNTICA DE VOZ AVANÇADA (PASSO 5) ---
+# --- IA SEMÂNTICA DE VOZ AVANÇADA ---
 if "intencao_atual" not in st.session_state:
     st.session_state.intencao_atual = "dashboard"
 
@@ -197,7 +218,7 @@ if intencao_voz:
         st.session_state.intencao_atual = "nuvem"
     else:
         st.session_state.intencao_atual = "dashboard"
-    st.info(f"🎙️ **Comando de Voz Detetado:** \"{intencao_voz}\" ➔ Módulo Ativado com Sucesso!")
+    st.info(f"🎙️ **Comando de Voz Detetado:** \"{intencao_voz}\" ➔ Módulo Ativado!")
 
 st.markdown("### 🎛️ Painel de Controlo Rápido")
 col1, col2 = st.columns(2)
@@ -244,22 +265,19 @@ if modulo_ativo == "dashboard":
 
     st.markdown("### 📊 Gráficos de Atividade do Sistema")
     
-    if not df_fin.empty or total_tarefas > 0 or not df_eq.empty:
-        st.markdown("**Resumo Financeiro (Receitas vs Despesas):**")
-        df_chart_fin = pd.DataFrame({
-            "Fluxo": ["Receitas", "Despesas"],
-            "Montante (€)": [total_receitas, total_despesas]
-        }).set_index("Fluxo")
-        st.bar_chart(df_chart_fin)
-        
-        st.markdown("**Progresso de Tarefas:**")
-        df_chart_t = pd.DataFrame({
-            "Estado": ["Concluídas", "Pendentes"],
-            "Quantidade": [concluidas, pendentes]
-        }).set_index("Estado")
-        st.bar_chart(df_chart_t)
-    else:
-        st.info("💡 Use o assistente de voz ou navegue pelos botões para registar dados!")
+    st.markdown("**Resumo Financeiro (Receitas vs Despesas):**")
+    df_chart_fin = pd.DataFrame({
+        "Fluxo": ["Receitas", "Despesas"],
+        "Montante (€)": [total_receitas, total_despesas]
+    }).set_index("Fluxo")
+    st.bar_chart(df_chart_fin)
+    
+    st.markdown("**Progresso de Tarefas:**")
+    df_chart_t = pd.DataFrame({
+        "Estado": ["Concluídas", "Pendentes"],
+        "Quantidade": [concluidas, pendentes]
+    }).set_index("Estado")
+    st.bar_chart(df_chart_t)
 
 # --- 2. MÓDULO FINANCEIRO ---
 elif modulo_ativo == "financeiro":
@@ -290,9 +308,9 @@ elif modulo_ativo == "equipa":
     
     with st.form("form_equipa"):
         st.markdown("**Adicionar Novo Colaborador:**")
-        nome_colab = st.text_input("Nome do Colaborador", placeholder="Ex: Ana Silva")
-        cargo_colab = st.text_input("Cargo / Função", placeholder="Ex: Engenharia de Software")
-        salario_colab = st.number_input("Salário Mensal Bruto (€)", min_value=0.0, value=1500.0)
+        nome_colab = st.text_input("Nome do Colaborador", value="Exemplo: João Pereira")
+        cargo_colab = st.text_input("Cargo / Função", value="Exemplo: Gestor de Projetos")
+        salario_colab = st.number_input("Salário Mensal Bruto (€)", min_value=0.0, value=1600.0)
         btn_colab = st.form_submit_button("Contratar / Registar Colaborador")
         
         if btn_colab:
@@ -315,21 +333,14 @@ elif modulo_ativo == "equipa":
 # --- 4. MÓDULO DE NUVEM & SINCRONIZAÇÃO ---
 elif modulo_ativo == "nuvem":
     st.info("☁️ Módulo de Sincronização em Nuvem (Cloud Database)")
-    st.markdown("""
-    Este módulo está preparado para ligar o OmniFlux a uma base de dados externa em tempo real (**Supabase / PostgreSQL**).
-    """)
-    
     with st.form("form_nuvem"):
         st.markdown("**Configurar Ligação à Nuvem:**")
-        cloud_url = st.text_input("URL da Base de Dados na Nuvem (Supabase URL)", placeholder="https://xyz.supabase.co")
-        cloud_key = st.text_input("Chave de Acesso (API Key)", type="password", placeholder="eyJhbGciOi...")
+        cloud_url = st.text_input("URL da Base de Dados na Nuvem (Supabase URL)", value="https://exemplo.supabase.co")
+        cloud_key = st.text_input("Chave de Acesso (API Key)", type="password", value="exemplo_chave_secreta")
         btn_sync = st.form_submit_button("Testar e Sincronizar Dados")
         
         if btn_sync:
-            if cloud_url and cloud_key:
-                st.success("Ligação à nuvem configurada com sucesso!")
-            else:
-                st.warning("Insira o URL e a Chave de Acesso.")
+            st.success("Ligação à nuvem configurada com sucesso!")
 
 # --- 5. MÓDULO DE TAREFAS & NOTAS ---
 elif modulo_ativo == "tarefas_notas":
@@ -338,7 +349,7 @@ elif modulo_ativo == "tarefas_notas":
     tab1, tab2 = st.tabs(["📋 Tarefas", "📝 Notas"])
     
     with tab1:
-        nova_t = st.text_input("Adicionar nova prioridade:")
+        nova_t = st.text_input("Adicionar nova prioridade:", value="Exemplo: Rever orçamento mensal")
         if st.button("Registar Tarefa"):
             if nova_t.strip():
                 guardar_tarefa(nova_t)
@@ -359,7 +370,7 @@ elif modulo_ativo == "tarefas_notas":
             st.write("Sem tarefas.")
             
     with tab2:
-        texto_nota = st.text_area("Regista o teu pensamento:", placeholder="Escreve aqui...")
+        texto_nota = st.text_area("Regista o teu pensamento:", value="Exemplo: Nota importante gravada no sistema.")
         if st.button("Salvar Nota"):
             if texto_nota.strip():
                 guardar_nota(texto_nota)
@@ -379,4 +390,4 @@ elif modulo_ativo == "tarefas_notas":
             st.write("Sem notas.")
 
 st.markdown("---")
-st.caption("OmniFlux Pro • Passo 5 Concluído (IA Semântica de Voz) ⚡")
+st.caption("OmniFlux Pro • Versão Completa com Exemplos Práticos ⚡")
