@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
 
 # Configuração da página
 st.set_page_config(page_title="OmniFlux Pro", page_icon="⚡", layout="centered")
@@ -127,23 +129,42 @@ else:
 
     elif st.session_state.pagina_atual == "Dashboard":
         st.header("🏠 Dashboard Principal")
-        st.write("Aqui pode ver os gráficos gerais, métricas de desempenho e resumos do sistema.")
+        st.write("Métricas de desempenho em tempo real e evolução do sistema.")
         st.metric(label="Utilizadores Ativos", value="1,245", delta="+12%")
+        
+        # Gráfico dinâmico de exemplo
+        chart_data = pd.DataFrame(np.random.randn(20, 3), columns=["Acessos", "Tarefas", "Sistema"])
+        st.line_chart(chart_data)
 
     elif st.session_state.pagina_atual == "Finanças":
         st.header("💰 Gestão Financeira")
         st.write("Consulte os saldos, faturas recentes, receitas e despesas da empresa.")
         st.metric(label="Saldo Atual", value="45.230,00 €", delta="+5.4%")
+        
+        # Tabela financeira detalhada
+        df_fin = pd.DataFrame({
+            "Categoria": ["Receitas", "Despesas", "Investimentos", "Manutenção"],
+            "Montante (€)": [32000, 12500, 8000, 2500]
+        })
+        st.dataframe(df_fin, use_container_width=True)
 
     elif st.session_state.pagina_atual == "Equipa":
         st.header("👥 Gestão de Equipa")
-        st.write("Lista de membros, permissões de administradores e tarefas atribuídas.")
-        st.markdown("- **Admin Principal:** admin (Ativo)\n- **Gestor de Contas:** joao.silva\n- **Suporte Técnico:** ana.souza")
+        st.write("Lista de membros e permissões de acesso ativas.")
+        
+        df_team = pd.DataFrame({
+            "Membro": ["Admin Principal", "João Silva", "Ana Souza", "Carlos Mendes"],
+            "Cargo": ["Administrador", "Gestor de Contas", "Suporte Técnico", "Desenvolvedor"],
+            "Estado": ["Ativo", "Ativo", "Ausente", "Ativo"]
+        })
+        st.dataframe(df_team, use_container_width=True)
 
     elif st.session_state.pagina_atual == "Relatórios":
         st.header("📊 Relatórios & Nuvem")
         st.write("Aceda aos relatórios gerados automaticamente e aos ficheiros sincronizados na nuvem.")
-        st.info("Nenhum ficheiro recente pendente de sincronização.")
+        
+        st.bar_chart(pd.DataFrame({"Relatórios Gerados": [10, 24, 18, 30, 45]}, index=["Jan", "Fev", "Mar", "Abr", "Mai"]))
+        st.success("Sincronização com a nuvem concluída com sucesso.")
 
     st.markdown("---")
     st.caption("OmniFlux Pro • Multi-utilizador Ativo ⚡")
