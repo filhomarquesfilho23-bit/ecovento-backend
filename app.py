@@ -2,13 +2,21 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 from datetime import datetime
+import streamlit.components.v1 as components
 
 # Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux Pro - Passo 2",
+    page_title="OmniFlux Pro - Passo 3",
     page_icon="⚡",
     layout="centered"
 )
+
+# --- CAPTURAR VOZ VIA URL PARAMS ---
+query_params = st.query_params
+intencao_voz = ""
+if "intencao" in query_params:
+    intencao_voz = query_params["intencao"]
+    st.query_params.clear()
 
 # --- BASE DE DADOS PERSISTENTE (SQLite Avançada) ---
 def init_db():
@@ -73,7 +81,7 @@ def obter_transacoes():
     conn.close()
     return df
 
-# Funções de Equipa (Passo 2)
+# Funções de Equipa
 def guardar_membro(nome, cargo, salario):
     conn = sqlite3.connect('omniflux_pro.db')
     c = conn.cursor()
@@ -128,13 +136,69 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ OmniFlux Pro")
-st.caption("Sistema Operativo Líquido • Passo 2: Equipa & Dashboard.")
+st.caption("Sistema Operativo Líquido • Passo 3: Voz Inteligente + Consola Unificada.")
 
-# --- GESTÃO DE ESTADO E NAVEGAÇÃO LÍQUIDA ---
+# --- COMPONENTE DE VOZ NATIVO (PASSO 3) ---
+st.markdown("### 🎙️ Assistente de Voz Inteligente")
+voice_component = """
+<div style="text-align: center; margin-bottom: 15px;">
+    <button onclick="startListening()" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 25px; padding: 12px 24px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); cursor: pointer; width: 100%;">
+        🎤 Tocar para Falar com o OmniFlux
+    </button>
+    <p id="status" style="color: #38bdf8; font-size: 13px; margin-top: 8px;">Diga um comando (ex: dashboard, finanças, equipa, tarefas)...</p>
+</div>
+
+<script>
+function startListening() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("O seu browser não suporta reconhecimento de voz direto.");
+        return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pt-PT';
+    recognition.interimResults = false;
+    
+    document.getElementById("status").innerText = "A escutar a sua voz...";
+    
+    recognition.onresult = function(event) {
+        const speechToText = event.results[0][0].transcript;
+        document.getElementById("status").innerText = "Comando detetado: " + speechToText;
+        
+        setTimeout(() => {
+            const baseUrl = window.parent.location.origin + window.parent.location.pathname;
+            window.parent.location.href = baseUrl + '?intencao=' + encodeURIComponent(speechToText);
+        }, 400);
+    };
+    
+    recognition.onerror = function(event) {
+        document.getElementById("status").innerText = "Erro ao escutar. Tente novamente.";
+    };
+    
+    recognition.start();
+}
+</script>
+"""
+components.html(voice_component, height=100)
+
+# --- GESTÃO DE ESTADO E NAVEGAÇÃO LÍQUIDA (IA SEMÂNTICA POR VOZ) ---
 if "intencao_atual" not in st.session_state:
     st.session_state.intencao_atual = "dashboard"
 
-st.markdown("### 🎙️ Painel de Controlo Rápido")
+# Motor semântico para interpretar a voz
+if intencao_voz:
+    t = intencao_voz.lower()
+    if "finan" in t or "dinheiro" in t or "orçamento" in t:
+        st.session_state.intencao_atual = "financeiro"
+    elif "equipa" in t or "colaborador" in t or "salario" in t:
+        st.session_state.intencao_atual = "equipa"
+    elif "tarefa" in t or "nota" in t or "fazer" in t:
+        st.session_state.intencao_atual = "tarefas_notas"
+    else:
+        st.session_state.intencao_atual = "dashboard"
+    st.info(f"🎙️ **Comando de Voz Executado:** \"{intencao_voz}\"")
+
+st.markdown("### 🎛️ Painel de Controlo Rápido")
 col1, col2 = st.columns(2)
 with col1:
     if st.button("🏠 Dashboard"):
@@ -191,7 +255,7 @@ if modulo_ativo == "dashboard":
         }).set_index("Estado")
         st.bar_chart(df_chart_t)
     else:
-        st.info("💡 Regista transações, tarefas ou membros de equipa para alimentar os gráficos dinâmicos!")
+        st.info("💡 Podes usar o botão vermelho de voz acima para navegar ou registar dados para preencher os gráficos!")
 
 # --- 2. MÓDULO FINANCEIRO INTERATIVO ---
 elif modulo_ativo == "financeiro":
@@ -216,7 +280,7 @@ elif modulo_ativo == "financeiro":
     else:
         st.write("Ainda sem transações registadas.")
 
-# --- 3. MÓDULO DE GESTÃO DE EQUIPA (PASSO 2) ---
+# --- 3. MÓDULO DE GESTÃO DE EQUIPA ---
 elif modulo_ativo == "equipa":
     st.warning("💧 Módulo de Recursos Humanos e Talento Materializado")
     
@@ -292,4 +356,4 @@ elif modulo_ativo == "tarefas_notas":
             st.write("Sem notas.")
 
 st.markdown("---")
-st.caption("OmniFlux Pro • Passo 2 Concluído ⚡")
+st.caption("OmniFlux Pro • Passo 3 Concluído (Voz + IA + Base de Dados) ⚡")
