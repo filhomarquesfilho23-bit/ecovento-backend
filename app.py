@@ -72,11 +72,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Botão de Ação Direta para a Aplicação
+# Botão de Ação Direta com o Link Real Atualizado
 col_space1, col_btn, col_space2 = st.columns([2, 2, 2])
 with col_btn:
-    # Substitua o link abaixo pelo link real da sua app no Streamlit Cloud quando tiver
-    link_app = "https://seu-link-do-streamlit.app" 
+    link_app = "https://ecovento-backend-itmlkww7vg5pkbndpcno7v.streamlit.app" 
     st.markdown(f'<a href="{link_app}" target="_blank"><button style="width: 100%; background-color: #007acc; color: white; border: 2px solid #00bfff; border-radius: 10px; padding: 12px; font-weight: bold; cursor: pointer;">🚀 Aceder à Aplicação</button></a>', unsafe_allow_html=True)
 
 st.markdown("<br><br>", unsafe_allow_html=True)
