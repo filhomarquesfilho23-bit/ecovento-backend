@@ -11,6 +11,13 @@ st.set_page_config(
     layout="centered"
 )
 
+# --- CAPTURAR VOZ VIA URL PARAMS ---
+query_params = st.query_params
+if "intencao" in query_params:
+    st.session_state.intencao_atual = query_params["intencao"]
+    # Limpar parâmetro para evitar loops
+    st.query_params.clear()
+
 # --- BASE DE DADOS PERSISTENTE (SQLite) ---
 def init_db():
     conn = sqlite3.connect('omniflux.db')
@@ -71,9 +78,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ OmniFlux Voice")
-st.caption("Sistema Operativo Líquido com Comandos por Voz em Tempo Real.")
+st.caption("Sistema Operativo Líquido com Comandos por Voz Instantâneos.")
 
-# --- COMPONENTE DE VOZ NATIVO COM ATUALIZAÇÃO AUTOMÁTICA ---
+# --- COMPONENTE DE VOZ ROBUSTO (RELOAD VIA URL) ---
 st.markdown("### 🎙️ Comando por Voz Inteligente")
 voice_component = """
 <div style="text-align: center; margin-bottom: 15px;">
@@ -98,26 +105,13 @@ function startListening() {
     
     recognition.onresult = function(event) {
         const speechToText = event.results[0][0].transcript;
-        document.getElementById("status").innerText = "Detetado: " + speechToText;
+        document.getElementById("status").innerText = "Detetado: " + speechToText + " (A carregar...)";
         
-        const streamlitInput = window.parent.document.querySelector('input[aria-label*="O que desejas realizar hoje?"]');
-        if (streamlitInput) {
-            streamlitInput.value = speechToText;
-            streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
-            streamlitInput.dispatchEvent(new Event('change', { bubbles: true }));
-            
-            // Forçar o Streamlit a atualizar a página para materializar o módulo de imediato
-            setTimeout(() => {
-                const doc = window.parent.document;
-                const activeElement = doc.activeElement;
-                if(activeElement) activeElement.blur();
-                // Simula um enter ou recarregamento limpo na app
-                const buttons = doc.querySelectorAll('button');
-                if(buttons.length > 0) {
-                    // Dispara um clique num elemento neutro se necessário ou deixa o input atualizar
-                }
-            }, 300);
-        }
+        // Recarregar a página passando o texto na URL para o Streamlit apanhar logo
+        setTimeout(() => {
+            const baseUrl = window.parent.location.origin + window.parent.location.pathname;
+            window.parent.location.href = baseUrl + '?intencao=' + encodeURIComponent(speechToText);
+        }, 400);
     };
     
     recognition.onerror = function(event) {
@@ -163,21 +157,21 @@ st.markdown("---")
 
 # --- MATERIALIZAÇÃO LÍQUIDA DINÂMICA ---
 if modulo_ativo == "financeiro":
-    st.success("💧 Módulo Financeiro Materializado por Voz em Tempo Real")
+    st.success("💧 Módulo Financeiro Materializado por Voz")
     st.metric("Saldo Global Ativo", "4.850,00 €", "+18.2%")
     st.bar_chart({"Jan": 1500, "Fev": 2800, "Mar": 4850})
     limite = st.slider("Ajustar Limite de Tesouraria (€)", 0, 10000, 4000)
     st.info(f"Limite otimizado: {limite} €")
 
 elif modulo_ativo == "recursos_humanos":
-    st.warning("💧 Módulo de Gestão de Talento Materializado por Voz em Tempo Real")
+    st.warning("💧 Módulo de Gestão de Talento Materializado por Voz")
     cargo = st.text_input("Cargo Pretendido", value="Arquiteto de Sistemas IA")
     vencimento = st.number_input("Orçamento Mensal Bruto (€)", value=3000)
     if st.button("Simular Contrato Anual"):
         st.success(f"Custo total anual projetado para {cargo}: {vencimento * 14} € (Subsídios incluídos).")
 
 elif modulo_ativo == "tarefas":
-    st.info("💧 Módulo de Tarefas e Execução Materializado por Voz em Tempo Real")
+    st.info("💧 Módulo de Tarefas e Execução Materializado por Voz")
     nova_tarefa = st.text_input("Nova Tarefa Estratégica:")
     if st.button("Guardar Tarefa"):
         st.toast("Tarefa guardada com sucesso!", icon="✅")
@@ -185,7 +179,7 @@ elif modulo_ativo == "tarefas":
     st.checkbox("Validar transições líquidas no telemóvel", value=True)
 
 elif modulo_ativo == "notas":
-    st.success("💧 Módulo de Memória Persistente Materializado por Voz em Tempo Real")
+    st.success("💧 Módulo de Memória Persistente Materializado por Voz")
     texto_nota = st.text_area("Regista o teu pensamento:", placeholder="Escreve aqui a tua ideia...")
     if st.button("Salvar na Base de Dados Global"):
         if texto_nota.strip():
