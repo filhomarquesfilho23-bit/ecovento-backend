@@ -5,7 +5,7 @@ from datetime import datetime
 
 # Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux Pro Ultimate",
+    page_title="OmniFlux Pro - Passo 1",
     page_icon="⚡",
     layout="centered"
 )
@@ -89,7 +89,6 @@ st.markdown("""
         border: 1px solid #38bdf8 !important;
         border-radius: 8px;
     }
-    /* Estilo de todos os botões preenchidos a azul sólido */
     .stButton button, div.stFormSubmitButton > button {
         background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
         color: #ffffff !important;
@@ -104,7 +103,6 @@ st.markdown("""
         background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
         color: #ffffff !important;
     }
-    /* Caixas de alerta e sucesso com fundo azul preenchido */
     .stSuccess, .stInfo, .stWarning {
         background-color: #1e293b !important;
         border: 1px solid #38bdf8 !important;
@@ -114,7 +112,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ OmniFlux Pro")
-st.caption("Sistema Operativo Líquido com Consola Unificada e IA.")
+st.caption("Sistema Operativo Líquido • Passo 1: Dashboard Dinâmico.")
 
 # --- GESTÃO DE ESTADO E NAVEGAÇÃO LÍQUIDA ---
 if "intencao_atual" not in st.session_state:
@@ -136,31 +134,51 @@ with col2:
 modulo_ativo = st.session_state.intencao_atual
 st.markdown("---")
 
-# --- 1. DASHBOARD CONSOLIDADO ---
+# --- 1. DASHBOARD COM GRÁFICOS DINÂMICOS REAIS ---
 if modulo_ativo == "dashboard":
-    st.success("💧 Consola Geral Materializada")
+    st.success("💧 Dashboard Dinâmico em Tempo Real")
     
+    # Obter dados reais das tabelas
     df_t = obter_tarefas()
+    total_tarefas = len(df_t) if not df_t.empty else 0
     pendentes = len(df_t[df_t['concluida'] == 0]) if not df_t.empty else 0
+    concluidas = total_tarefas - pendentes
     
     df_n = obter_notas()
     total_notas = len(df_n) if not df_n.empty else 0
     
     df_fin = obter_transacoes()
-    saldo_atual = 4850.0
-    if not df_fin.empty:
-        receitas = df_fin[df_fin['tipo'] == 'Receita']['valor'].sum()
-        despesas = df_fin[df_fin['tipo'] == 'Despesa']['valor'].sum()
-        saldo_atual += (receitas - despesas)
+    total_receitas = df_fin[df_fin['tipo'] == 'Receita']['valor'].sum() if not df_fin.empty else 0.0
+    total_despesas = df_fin[df_fin['tipo'] == 'Despesa']['valor'].sum() if not df_fin.empty else 0.0
+    saldo_liquido = 4850.0 + total_receitas - total_despesas
 
+    # Métricas de topo
     c1, c2 = st.columns(2)
     with c1:
-        st.metric("Saldo Líquido", f"{saldo_atual:,.2f} €")
+        st.metric("Saldo Líquido", f"{saldo_liquido:,.2f} €")
     with c2:
         st.metric("Tarefas Pendentes", f"{pendentes}")
+
+    st.markdown("### 📊 Gráficos de Atividade do Sistema")
+    
+    if not df_fin.empty or total_tarefas > 0:
+        # Gráfico dinâmico de finanças reais
+        st.markdown("**Resumo Financeiro (Receitas vs Despesas):**")
+        df_chart_fin = pd.DataFrame({
+            "Fluxo": ["Receitas", "Despesas"],
+            "Montante (€)": [total_receitas, total_despesas]
+        }).set_index("Fluxo")
+        st.bar_chart(df_chart_fin)
         
-    st.info(f"📚 Tens **{total_notas}** notas guardadas na memória persistente do sistema.")
-    st.markdown("Usa os botões acima para transitar instantaneamente para os módulos de Finanças, Tarefas ou Gestão de Notas.")
+        # Gráfico dinâmico de tarefas reais
+        st.markdown("**Progresso de Tarefas:**")
+        df_chart_t = pd.DataFrame({
+            "Estado": ["Concluídas", "Pendentes"],
+            "Quantidade": [concluidas, pendentes]
+        }).set_index("Estado")
+        st.bar_chart(df_chart_t)
+    else:
+        st.info("💡 Regista algumas transações no módulo de Finanças ou cria tarefas para veres os gráficos dinâmicos a preencherem-se automaticamente aqui!")
 
 # --- 2. MÓDULO FINANCEIRO INTERATIVO ---
 elif modulo_ativo == "financeiro":
@@ -240,4 +258,4 @@ elif modulo_ativo == "notas":
         st.write("Ainda não existem notas guardadas.")
 
 st.markdown("---")
-st.caption("OmniFlux Pro Ultimate • Sistema Operativo Totalmente Autónomo ⚡")
+st.caption("OmniFlux Pro • Passo 1 Concluído ⚡")
