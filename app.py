@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
 # Configuração para Telemóvel / Layout Responsivo
 st.set_page_config(
@@ -12,19 +11,41 @@ st.set_page_config(
 st.title("⚡ OmniFlux")
 st.caption("O teu sistema operativo líquido e dinâmico.")
 
-# Inicializar histórico na sessão se não existir
-if "historico_intencoes" not in st.session_state:
-    st.session_state.historico_intencoes = []
+# --- MODO DEMO PARA O VÍDEO (Acesso Rápido) ---
+st.markdown("### 🎬 Painel de Demonstração Rápida")
+col_d1, col_d2, col_d3 = st.columns(3)
+with col_d1:
+    btn_fin = st.button("💰 Finanças")
+with col_d2:
+    btn_rh = st.button("👥 Equipa")
+with col_d3:
+    btn_tarefas = st.button("📋 Tarefas")
 
-# Campo de Intenção Absoluta
-st.markdown("### 🧠 O que vamos fazer hoje?")
+# Definir intenção por clique ou por texto livre
+if "intencao_atual" not in st.session_state:
+    st.session_state.intencao_atual = ""
+
+if btn_fin:
+    st.session_state.intencao_atual = "analisar finanças"
+elif btn_rh:
+    st.session_state.intencao_atual = "gerir equipa"
+elif btn_tarefas:
+    st.session_state.intencao_atual = "criar tarefas"
+
+# Campo de Intenção Absoluta (Texto livre)
+st.markdown("---")
+st.markdown("### 🧠 Escrever Intenção")
 intencao_utilizador = st.text_input(
-    "Escreve a tua intenção:",
-    placeholder="Ex: analisar finanças, gerir equipa, criar tarefas..."
+    "Ou escreve o que queres fazer:",
+    value=st.session_state.intencao_atual,
+    placeholder="Ex: analisar finanças, gerir equipa..."
 )
 
+# Atualizar estado global
+st.session_state.intencao_atual = intencao_utilizador
+
 def processar_intencao(texto):
-    """Motor semântico avançado para o OmniFlux."""
+    """Motor semântico do OmniFlux."""
     texto = texto.lower()
     if "finan" in texto or "despesa" in texto or "fatura" in texto or "dinheiro" in texto:
         return "financeiro"
@@ -35,17 +56,13 @@ def processar_intencao(texto):
     else:
         return "geral"
 
-# Registar intenção no histórico se for nova
-if intencao_utilizador and (not st.session_state.historico_intencoes or st.session_state.historico_intencoes[-1] != intencao_utilizador):
-    st.session_state.historico_intencoes.append(intencao_utilizador)
-
 modulo_ativo = processar_intencao(intencao_utilizador) if intencao_utilizador else "geral"
 
 st.markdown("---")
 
 # Materialização líquida da interface baseada na intenção
 if modulo_ativo == "financeiro":
-    st.success("💧 Módulo Financeiro Materializado")
+    st.success("💧 Módulo Financeiro Materializado Instantaneamente")
     st.metric("Total Disponível", "2.450,00 €", "+12.5%")
     
     st.markdown("**Evolução Mensal (€):**")
@@ -55,7 +72,7 @@ if modulo_ativo == "financeiro":
     st.info(f"Orçamento configurado para: {orcamento} €")
 
 elif modulo_ativo == "recursos_humanos":
-    st.warning("💧 Módulo de Gestão de Equipa Materializado")
+    st.warning("💧 Módulo de Gestão de Equipa Materializado Instantaneamente")
     cargo = st.text_input("Função do Colaborador", value="Especialista IA")
     salario_base = st.number_input("Remuneração Base Mensal (€)", value=2200)
     
@@ -63,21 +80,21 @@ elif modulo_ativo == "recursos_humanos":
         st.success(f"Proposta gerada para {cargo} com custo anual estimado de {salario_base * 14} €.")
 
 elif modulo_ativo == "tarefas":
-    st.info("💧 Módulo de Execução de Tarefas Materializado")
+    st.info("💧 Módulo de Execução de Tarefas Materializado Instantaneamente")
     nova_tarefa = st.text_input("Adicionar nova prioridade:")
     if st.button("Registar Tarefa"):
         st.toast(f"Tarefa guardada: {nova_tarefa}", icon="✅")
     
     st.markdown("**Tarefas Ativas:**")
     st.checkbox("Finalizar protótipo do OmniFlux", value=True)
-    st.checkbox("Testar integração no telemóvel", value=True)
+    st.checkbox("Testar transição fluida no telemóvel", value=True)
 
 else:
-    st.info("💡 **OmniFlux Ativo:** Escreve em cima o que pretendes (ex: *'analisar finanças'*, *'gerir equipa'* ou *'criar tarefas'*) para transformar a interface instantaneamente!")
+    st.info("💡 **OmniFlux Pronto:** Usa os botões de demonstração em cima ou escreve uma intenção para transformar o ecrã na hora!")
     
     st.markdown("### 📝 Bloco de Notas Líquido")
     st.text_area("Regista pensamentos rápidos:", height=120, placeholder="Escreve aqui...")
 
 # Rodapé minimalista
 st.markdown("---")
-st.caption("OmniFlux Core • Pronto para produção móvel")
+st.caption("OmniFlux Core • Sistema Operativo Líquido v1.0")
