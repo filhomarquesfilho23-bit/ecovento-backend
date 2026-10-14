@@ -166,8 +166,8 @@ if not st.session_state.autenticado:
     
     with tab_login:
         with st.form("form_login"):
-            username_input = st.text_input("Utilizador", placeholder="Ex: admin")
-            password_input = st.text_input("Palavra-passe", type="password", placeholder="Ex: 1234")
+            username_input = st.text_input("Utilizador", value="admin")
+            password_input = st.text_input("Palavra-passe", type="password", value="1234")
             btn_entrar = st.form_submit_button("Entrar no Sistema")
             
             if btn_entrar:
