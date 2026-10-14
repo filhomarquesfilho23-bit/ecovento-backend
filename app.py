@@ -72,37 +72,43 @@ def obter_transacoes():
     conn.close()
     return df
 
-# --- ESTILO AZUL FUTURISTA (CUSTOM CSS) ---
+# --- ESTILO AZUL FUTURISTA TOTALMENTE PREENCHIDO (CUSTOM CSS) ---
 st.markdown("""
     <style>
     .stApp {
         background-color: #0b1329;
-        color: #e2e8f0;
+        color: #ffffff;
     }
     h1, h2, h3 {
         color: #38bdf8 !important;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    .stTextInput input, .stTextArea textarea, .stNumberInput input {
+    .stTextInput input, .stTextArea textarea, .stNumberInput input, .stSelectbox select {
         background-color: #1e293b !important;
         color: #ffffff !important;
         border: 1px solid #38bdf8 !important;
         border-radius: 8px;
     }
-    .stButton button {
-        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-        color: white;
-        border: none;
+    /* Estilo de todos os botões preenchidos a azul sólido */
+    .stButton button, div.stFormSubmitButton > button {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid #38bdf8 !important;
         border-radius: 8px;
         font-weight: bold;
         width: 100%;
         padding: 0.6rem 1rem;
-        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
     }
-    .stButton button:hover {
-        background: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%);
-        border: none;
-        color: white;
+    .stButton button:hover, div.stFormSubmitButton > button:hover {
+        background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
+        color: #ffffff !important;
+    }
+    /* Caixas de alerta e sucesso com fundo azul preenchido */
+    .stSuccess, .stInfo, .stWarning {
+        background-color: #1e293b !important;
+        border: 1px solid #38bdf8 !important;
+        color: #ffffff !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -160,7 +166,6 @@ if modulo_ativo == "dashboard":
 elif modulo_ativo == "financeiro":
     st.success("💧 Módulo Financeiro Interativo Materializado")
     
-    # Registar nova transação
     with st.form("form_financas"):
         st.markdown("**Registar Movimento Financeiro:**")
         tipo_mov = st.selectbox("Tipo", ["Receita", "Despesa"])
@@ -180,7 +185,7 @@ elif modulo_ativo == "financeiro":
     else:
         st.write("Ainda sem transações registadas.")
 
-# --- 3. MÓDULO DE TAREfas PERSISTENTES ---
+# --- 3. MÓDULO DE TAREFAS PERSISTENTES ---
 elif modulo_ativo == "tarefas":
     st.info("💧 Módulo de Tarefas Estratégicas Materializado")
     
@@ -224,7 +229,6 @@ elif modulo_ativo == "notas":
         for index, row in df_notas.iterrows():
             st.info(f"[{row['data']}] {row['texto']}")
             
-        # Botão de Exportação para CSV
         csv_data = df_notas.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="📥 Descarregar Notas em formato CSV",
