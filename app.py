@@ -3,6 +3,30 @@ import streamlit as st
 # Configuração da página
 st.set_page_config(page_title="OmniFlux Pro", page_icon="⚡", layout="centered")
 
+# Estilo CSS Personalizado (Tom Azul Dinâmico)
+st.markdown("""
+    <style>
+    /* Estilização personalizada para os botões com tom azul moderno */
+    .stButton>button {
+        background-color: #1e3d59;
+        color: #ffffff;
+        border: 2px solid #00bfff;
+        border-radius: 10px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #00bfff;
+        color: #0e1117;
+        border-color: #00bfff;
+    }
+    /* Estilo para métricas */
+    [data-testid="stMetricValue"] {
+        color: #00bfff;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Inicializar o estado da sessão
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -71,7 +95,7 @@ else:
 
         st.markdown("---")
 
-        # Secção: Painel de Controlo Rápido (Comandos para alterar a página)
+        # Secção: Painel de Controlo Rápido
         st.markdown("## 🎛️ Painel de Controlo Rápido")
         
         if st.button("🏠 Dashboard", use_container_width=True):
@@ -93,7 +117,6 @@ else:
     elif st.session_state.pagina_atual == "Dashboard":
         st.header("🏠 Dashboard Principal")
         st.write("Aqui pode ver os gráficos gerais, métricas de desempenho e resumos do sistema.")
-        # Pode colocar aqui componentes reais como st.metric(), st.line_chart(), etc.
         st.metric(label="Utilizadores Ativos", value="1,245", delta="+12%")
 
     elif st.session_state.pagina_atual == "Finanças":
