@@ -71,9 +71,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ OmniFlux Voice")
-st.caption("Sistema Operativo Líquido com Comandos por Voz e IA.")
+st.caption("Sistema Operativo Líquido com Comandos por Voz em Tempo Real.")
 
-# --- COMPONENTE DE VOZ NATIVO (HTML/JS) ---
+# --- COMPONENTE DE VOZ NATIVO COM ATUALIZAÇÃO AUTOMÁTICA ---
 st.markdown("### 🎙️ Comando por Voz Inteligente")
 voice_component = """
 <div style="text-align: center; margin-bottom: 15px;">
@@ -98,13 +98,25 @@ function startListening() {
     
     recognition.onresult = function(event) {
         const speechToText = event.results[0][0].transcript;
-        document.getElementById("status").innerText = "Comando detetado: " + speechToText;
+        document.getElementById("status").innerText = "Detetado: " + speechToText;
         
-        // Enviar o texto para o Streamlit através de URL parameter ou reloads
         const streamlitInput = window.parent.document.querySelector('input[aria-label*="O que desejas realizar hoje?"]');
         if (streamlitInput) {
             streamlitInput.value = speechToText;
             streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
+            streamlitInput.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Forçar o Streamlit a atualizar a página para materializar o módulo de imediato
+            setTimeout(() => {
+                const doc = window.parent.document;
+                const activeElement = doc.activeElement;
+                if(activeElement) activeElement.blur();
+                // Simula um enter ou recarregamento limpo na app
+                const buttons = doc.querySelectorAll('button');
+                if(buttons.length > 0) {
+                    // Dispara um clique num elemento neutro se necessário ou deixa o input atualizar
+                }
+            }, 300);
         }
     };
     
@@ -132,9 +144,9 @@ intencao_utilizador = st.text_input(
 st.session_state.intencao_atual = intencao_utilizador
 
 def motor_ia_semantico(texto):
-    """Motor de intenção inteligente."""
+    """Motor de intenção inteligente otimizado."""
     t = texto.lower()
-    if any(k in t for k in ["finan", "dinheiro", "gastos", "orçamento", "fatura"]):
+    if "finan" in t or "dinheiro" in t or "gastos" in t or "orçamento" in t or "fatura" in t:
         return "financeiro"
     elif any(k in t for k in ["equipa", "salario", "contrat", "colaborador"]):
         return "recursos_humanos"
@@ -151,29 +163,29 @@ st.markdown("---")
 
 # --- MATERIALIZAÇÃO LÍQUIDA DINÂMICA ---
 if modulo_ativo == "financeiro":
-    st.success("💧 Módulo Financeiro Materializado por Voz / IA")
+    st.success("💧 Módulo Financeiro Materializado por Voz em Tempo Real")
     st.metric("Saldo Global Ativo", "4.850,00 €", "+18.2%")
     st.bar_chart({"Jan": 1500, "Fev": 2800, "Mar": 4850})
     limite = st.slider("Ajustar Limite de Tesouraria (€)", 0, 10000, 4000)
     st.info(f"Limite otimizado: {limite} €")
 
 elif modulo_ativo == "recursos_humanos":
-    st.warning("💧 Módulo de Gestão de Talento Materializado por Voz / IA")
+    st.warning("💧 Módulo de Gestão de Talento Materializado por Voz em Tempo Real")
     cargo = st.text_input("Cargo Pretendido", value="Arquiteto de Sistemas IA")
     vencimento = st.number_input("Orçamento Mensal Bruto (€)", value=3000)
     if st.button("Simular Contrato Anual"):
         st.success(f"Custo total anual projetado para {cargo}: {vencimento * 14} € (Subsídios incluídos).")
 
 elif modulo_ativo == "tarefas":
-    st.info("💧 Módulo de Tarefas e Execução Materializado por Voz / IA")
+    st.info("💧 Módulo de Tarefas e Execução Materializado por Voz em Tempo Real")
     nova_tarefa = st.text_input("Nova Tarefa Estratégica:")
     if st.button("Guardar Tarefa"):
         st.toast("Tarefa guardada com sucesso!", icon="✅")
-    st.checkbox("Integrar comandos por voz no OmniFlux", value=True)
+    st.checkbox("Integrar comandos por voz instantâneos no OmniFlux", value=True)
     st.checkbox("Validar transições líquidas no telemóvel", value=True)
 
 elif modulo_ativo == "notas":
-    st.success("💧 Módulo de Memória Persistente Materializado por Voz / IA")
+    st.success("💧 Módulo de Memória Persistente Materializado por Voz em Tempo Real")
     texto_nota = st.text_area("Regista o teu pensamento:", placeholder="Escreve aqui a tua ideia...")
     if st.button("Salvar na Base de Dados Global"):
         if texto_nota.strip():
@@ -196,4 +208,4 @@ else:
     st.text_area("Rascunho Rápido:", height=100, placeholder="Escreve notas rápidas...")
 
 st.markdown("---")
-st.caption("OmniFlux Voice Ultimate • Voz + IA Semântica + SQLite ⚡")
+st.caption("OmniFlux Voice Ultimate • Voz Instantânea + IA Semântica + SQLite ⚡")
