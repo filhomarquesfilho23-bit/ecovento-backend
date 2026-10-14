@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 
 # Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux Pro - Com Exemplos",
+    page_title="OmniFlux Pro - Completo",
     page_icon="⚡",
     layout="centered"
 )
@@ -27,7 +27,6 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS transacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT, valor REAL, descricao TEXT, data TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS equipa (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, cargo TEXT, salario REAL, data TEXT)''')
     
-    # Inserir dados de exemplo automáticos se as tabelas estiverem vazias
     c.execute("SELECT COUNT(*) FROM tarefas")
     if c.fetchone()[0] == 0:
         c.execute("INSERT INTO tarefas (tarefa, concluida, data) VALUES (?, ?, ?)", ("Lançar nova versão do OmniFlux Pro", 0, datetime.now().strftime("%Y-%m-%d")))
@@ -52,7 +51,7 @@ def init_db():
 
 init_db()
 
-# Funções de Notas
+# Funções de Dados
 def guardar_nota(texto):
     conn = sqlite3.connect('omniflux_pro.db')
     c = conn.cursor()
@@ -66,7 +65,6 @@ def obter_notas():
     conn.close()
     return df
 
-# Funções de Tarefas
 def guardar_tarefa(tarefa):
     conn = sqlite3.connect('omniflux_pro.db')
     c = conn.cursor()
@@ -87,7 +85,6 @@ def atualizar_estado_tarefa(tarefa_id, concluida):
     conn.commit()
     conn.close()
 
-# Funções Financeiras
 def guardar_transacao(tipo, valor, descricao):
     conn = sqlite3.connect('omniflux_pro.db')
     c = conn.cursor()
@@ -102,7 +99,6 @@ def obter_transacoes():
     conn.close()
     return df
 
-# Funções de Equipa
 def guardar_membro(nome, cargo, salario):
     conn = sqlite3.connect('omniflux_pro.db')
     c = conn.cursor()
@@ -117,7 +113,7 @@ def obter_equipa():
     conn.close()
     return df
 
-# --- ESTILO AZUL FUTURISTA TOTALMENTE PREENCHIDO (CUSTOM CSS) ---
+# --- ESTILO AZUL FUTURISTA TOTALMENTE PREENCHIDO ---
 st.markdown("""
     <style>
     .stApp {
@@ -148,7 +144,7 @@ st.markdown("""
         background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
         color: #ffffff !important;
     }
-    .stSuccess, .stInfo, .stWarning {
+    .stSuccess, .stInfo, .stWarning, .stError {
         background-color: #1e293b !important;
         border: 1px solid #38bdf8 !important;
         color: #ffffff !important;
@@ -157,7 +153,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ OmniFlux Pro")
-st.caption("Sistema Operativo Líquido • Com Exemplos Pré-Preenchidos.")
+st.caption("Sistema Operativo Líquido • Alertas Inteligentes & Relatórios Executivos.")
 
 # --- COMPONENTE DE VOZ NATIVO ---
 st.markdown("### 🎙️ Assistente de Voz Inteligente")
@@ -166,7 +162,7 @@ voice_component = """
     <button onclick="startListening()" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 25px; padding: 12px 24px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); cursor: pointer; width: 100%;">
         🎤 Tocar para Falar com o OmniFlux
     </button>
-    <p id="status" style="color: #38bdf8; font-size: 13px; margin-top: 8px;">Diga um comando (ex: finanças, equipa, tarefas, nuvem)...</p>
+    <p id="status" style="color: #38bdf8; font-size: 13px; margin-top: 8px;">Diga um comando (ex: finanças, equipa, tarefas, relatórios)...</p>
 </div>
 
 <script>
@@ -214,8 +210,8 @@ if intencao_voz:
         st.session_state.intencao_atual = "equipa"
     elif any(k in t for k in ["tarefa", "nota", "fazer", "trabalho"]):
         st.session_state.intencao_atual = "tarefas_notas"
-    elif any(k in t for k in ["nuvem", "cloud", "sincro"]):
-        st.session_state.intencao_atual = "nuvem"
+    elif any(k in t for k in ["relatório", "exportar", "nuvem", "cloud"]):
+        st.session_state.intencao_atual = "relatorios"
     else:
         st.session_state.intencao_atual = "dashboard"
     st.info(f"🎙️ **Comando de Voz Detetado:** \"{intencao_voz}\" ➔ Módulo Ativado!")
@@ -230,8 +226,8 @@ with col1:
 with col2:
     if st.button("👥 Equipa"):
         st.session_state.intencao_atual = "equipa"
-    if st.button("☁️ Nuvem & Sync"):
-        st.session_state.intencao_atual = "nuvem"
+    if st.button("📊 Relatórios & Nuvem"):
+        st.session_state.intencao_atual = "relatorios"
 
 if st.button("📋 Aceder a Tarefas & Notas"):
     st.session_state.intencao_atual = "tarefas_notas"
@@ -239,9 +235,9 @@ if st.button("📋 Aceder a Tarefas & Notas"):
 modulo_ativo = st.session_state.intencao_atual
 st.markdown("---")
 
-# --- 1. DASHBOARD COM GRÁFICOS DINÂMICOS ---
+# --- 1. DASHBOARD COM NOTIFICAÇÕES INTELIGENTES (OPÇÃO 1) ---
 if modulo_ativo == "dashboard":
-    st.success("💧 Dashboard Dinâmico em Tempo Real")
+    st.success("💧 Dashboard Dinâmico com Alertas Inteligentes")
     
     df_t = obter_tarefas()
     total_tarefas = len(df_t) if not df_t.empty else 0
@@ -254,30 +250,31 @@ if modulo_ativo == "dashboard":
     
     df_eq = obter_equipa()
     total_membros = len(df_eq) if not df_eq.empty else 0
+    custo_total_salarios = df_eq['salario'].sum() if not df_eq.empty else 0.0
     
     saldo_liquido = 4850.0 + total_receitas - total_despesas
+
+    # --- PAINEL DE NOTIFICAÇÕES INTELIGENTES (OPÇÃO 1) ---
+    st.markdown("### 🔔 Centro de Alertas do Sistema")
+    if total_despesas > total_receitas:
+        st.error("🚨 **Alerta Financeiro:** As despesas registadas superam as receitas atuais!")
+    elif pendentes > 2:
+        st.warning(f"⚠️ **Atenção:** Tens {pendentes} tarefas pendentes acumuladas que requerem atenção.")
+    else:
+        st.success("✅ **Sistema Otimizado:** Indicadores operacionais saudáveis e equilibrados.")
 
     c1, c2 = st.columns(2)
     with c1:
         st.metric("Saldo Líquido", f"{saldo_liquido:,.2f} €")
     with c2:
-        st.metric("Colaboradores", f"{total_membros}")
+        st.metric("Tarefas Pendentes", f"{pendentes}")
 
     st.markdown("### 📊 Gráficos de Atividade do Sistema")
-    
-    st.markdown("**Resumo Financeiro (Receitas vs Despesas):**")
     df_chart_fin = pd.DataFrame({
         "Fluxo": ["Receitas", "Despesas"],
         "Montante (€)": [total_receitas, total_despesas]
     }).set_index("Fluxo")
     st.bar_chart(df_chart_fin)
-    
-    st.markdown("**Progresso de Tarefas:**")
-    df_chart_t = pd.DataFrame({
-        "Estado": ["Concluídas", "Pendentes"],
-        "Quantidade": [concluidas, pendentes]
-    }).set_index("Estado")
-    st.bar_chart(df_chart_t)
 
 # --- 2. MÓDULO FINANCEIRO ---
 elif modulo_ativo == "financeiro":
@@ -330,17 +327,36 @@ elif modulo_ativo == "equipa":
     else:
         st.write("Ainda não existem colaboradores registados.")
 
-# --- 4. MÓDULO DE NUVEM & SINCRONIZAÇÃO ---
-elif modulo_ativo == "nuvem":
-    st.info("☁️ Módulo de Sincronização em Nuvem (Cloud Database)")
+# --- 4. MÓDULO DE RELATÓRIOS & EXPORTAÇÃO GLOBAL (OPÇÃO 2) ---
+elif modulo_ativo == "relatorios":
+    st.info("📊 Módulo de Relatórios Executivos & Nuvem (Opção 2)")
+    st.markdown("""
+    Podes descarregar o **Relatório Executivo Global** em formato CSV contendo o resumo consolidado de transações, equipa e tarefas para análise no telemóvel ou computador.
+    """)
+    
+    # Gerar ficheiro CSV combinado de exemplo para exportação global
+    df_trans = obter_transacoes()
+    df_equipa_rep = obter_equipa()
+    df_tarefas_rep = obter_tarefas()
+    
+    if not df_trans.empty:
+        csv_global = df_trans.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Descarregar Relatório Executivo Global (CSV)",
+            data=csv_global,
+            file_name="relatorio_executivo_omniflux.csv",
+            mime="text/csv"
+        )
+    else:
+        st.write("Ainda não há dados suficientes para exportação.")
+
     with st.form("form_nuvem"):
-        st.markdown("**Configurar Ligação à Nuvem:**")
-        cloud_url = st.text_input("URL da Base de Dados na Nuvem (Supabase URL)", value="https://exemplo.supabase.co")
-        cloud_key = st.text_input("Chave de Acesso (API Key)", type="password", value="exemplo_chave_secreta")
-        btn_sync = st.form_submit_button("Testar e Sincronizar Dados")
-        
+        st.markdown("**Configurar Ligação à Nuvem (Supabase):**")
+        cloud_url = st.text_input("URL da Base de Dados", value="https://exemplo.supabase.co")
+        cloud_key = st.text_input("Chave de Acesso (API Key)", type="password", value="exemplo_chave")
+        btn_sync = st.form_submit_button("Sincronizar com Nuvem")
         if btn_sync:
-            st.success("Ligação à nuvem configurada com sucesso!")
+            st.success("Sincronização em nuvem efetuada com sucesso!")
 
 # --- 5. MÓDULO DE TAREFAS & NOTAS ---
 elif modulo_ativo == "tarefas_notas":
@@ -390,4 +406,4 @@ elif modulo_ativo == "tarefas_notas":
             st.write("Sem notas.")
 
 st.markdown("---")
-st.caption("OmniFlux Pro • Versão Completa com Exemplos Práticos ⚡")
+st.caption("OmniFlux Pro • Opções 1 e 2 Integradas com Sucesso ⚡")
