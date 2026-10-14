@@ -16,9 +16,9 @@ st.set_page_config(
 def hash_password(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
-# --- BASE DE DADOS HÍBRIDA (UTILIZADORES + DADOS) ---
+# --- BASE DE DADOS HÍBRIDA (NOVA VERSÃO V2) ---
 def init_db():
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS utilizadores (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS notas (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, texto TEXT, data TEXT)''')
@@ -58,40 +58,40 @@ if "intencao" in query_params:
 
 # --- FUNÇÕES DE DADOS FILTRADAS POR UTILIZADOR ---
 def guardar_nota(user, texto):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     c = conn.cursor()
     c.execute("INSERT INTO notas (username, texto, data) VALUES (?, ?, ?)", (user, texto, datetime.now().strftime("%Y-%m-%d %H:%M")))
     conn.commit()
     conn.close()
 
 def obter_notas(user):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     df = pd.read_sql_query("SELECT * FROM notas WHERE username = ? ORDER BY id DESC", conn, params=(user,))
     conn.close()
     return df
 
 def guardar_tarefa(user, tarefa):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     c = conn.cursor()
     c.execute("INSERT INTO tarefas (username, tarefa, concluida, data) VALUES (?, ?, 0, ?)", (user, tarefa, datetime.now().strftime("%Y-%m-%d")))
     conn.commit()
     conn.close()
 
 def obter_tarefas(user):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     df = pd.read_sql_query("SELECT * FROM tarefas WHERE username = ? ORDER BY id DESC", conn, params=(user,))
     conn.close()
     return df
 
 def atualizar_estado_tarefa(tarefa_id, concluida):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     c = conn.cursor()
     c.execute("UPDATE tarefas SET concluida = ? WHERE id = ?", (1 if concluida else 0, tarefa_id))
     conn.commit()
     conn.close()
 
 def guardar_transacao(user, tipo, valor, descricao):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     c = conn.cursor()
     c.execute("INSERT INTO transacoes (username, tipo, valor, descricao, data) VALUES (?, ?, ?, ?, ?)", 
               (user, tipo, valor, descricao, datetime.now().strftime("%Y-%m-%d")))
@@ -99,13 +99,13 @@ def guardar_transacao(user, tipo, valor, descricao):
     conn.close()
 
 def obter_transacoes(user):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     df = pd.read_sql_query("SELECT * FROM transacoes WHERE username = ? ORDER BY id DESC", conn, params=(user,))
     conn.close()
     return df
 
 def guardar_membro(user, nome, cargo, salario):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     c = conn.cursor()
     c.execute("INSERT INTO equipa (username, nome, cargo, salario, data) VALUES (?, ?, ?, ?, ?)", 
               (user, nome, cargo, salario, datetime.now().strftime("%Y-%m-%d")))
@@ -113,7 +113,7 @@ def guardar_membro(user, nome, cargo, salario):
     conn.close()
 
 def obter_equipa(user):
-    conn = sqlite3.connect('omniflux_pro.db')
+    conn = sqlite3.connect('omniflux_pro_v2.db')
     df = pd.read_sql_query("SELECT * FROM equipa WHERE username = ? ORDER BY id DESC", conn, params=(user,))
     conn.close()
     return df
@@ -171,7 +171,7 @@ if not st.session_state.autenticado:
             btn_entrar = st.form_submit_button("Entrar no Sistema")
             
             if btn_entrar:
-                conn = sqlite3.connect('omniflux_pro.db')
+                conn = sqlite3.connect('omniflux_pro_v2.db')
                 c = conn.cursor()
                 hashed_pass = hash_password(password_input)
                 c.execute("SELECT * FROM utilizadores WHERE username = ? AND password = ?", (username_input, hashed_pass))
@@ -195,7 +195,7 @@ if not st.session_state.autenticado:
             if btn_registar_conta:
                 if novo_user.strip() and nova_pass.strip():
                     try:
-                        conn = sqlite3.connect('omniflux_pro.db')
+                        conn = sqlite3.connect('omniflux_pro_v2.db')
                         c = conn.cursor()
                         hashed_pass = hash_password(nova_pass)
                         c.execute("INSERT INTO utilizadores (username, password) VALUES (?, ?)", (novo_user, hashed_pass))
