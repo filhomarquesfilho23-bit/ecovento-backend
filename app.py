@@ -3,9 +3,10 @@ import streamlit as st
 # Configuração da página
 st.set_page_config(page_title="OmniFlux Pro", page_icon="⚡", layout="centered")
 
-# Estilo CSS Personalizado com !important para forçar a cor azul nos botões
+# Estilo CSS Personalizado: Botão de Login Preto e restantes botões/elementos em Azul
 st.markdown("""
     <style>
+    /* Estilo padrão para os botões do painel (Azul) */
     .stButton>button {
         background-color: #007acc !important;
         color: #ffffff !important;
@@ -18,6 +19,19 @@ st.markdown("""
         color: #0e1117 !important;
         border-color: #ffffff !important;
     }
+    
+    /* Forçar especificamente o botão "Entrar no Sistema" a ficar Preto */
+    div.stButton > button:has-text("Entrar no Sistema") {
+        background-color: #111111 !important;
+        color: #ffffff !important;
+        border: 2px solid #444444 !important;
+    }
+    div.stButton > button:has-text("Entrar no Sistema"):hover {
+        background-color: #222222 !important;
+        border-color: #00bfff !important;
+    }
+
+    /* Cor para as métricas */
     [data-testid="stMetricValue"] {
         color: #00bfff !important;
     }
