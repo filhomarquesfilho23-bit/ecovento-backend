@@ -8,10 +8,53 @@ st.set_page_config(
     layout="centered"
 )
 
+# --- ESTILO AZUL FUTURISTA (CUSTOM CSS) ---
+st.markdown("""
+    <style>
+    /* Fundo geral da aplicação em tons de azul escuro / tecnológico */
+    .stApp {
+        background-color: #0b1329;
+        color: #e2e8f0;
+    }
+    
+    /* Estilização dos títulos e textos */
+    h1, h2, h3 {
+        color: #38bdf8 !important;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    /* Caixas de input e texto */
+    .stTextInput input, .stTextArea textarea {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #38bdf8 !important;
+        border-radius: 8px;
+    }
+    
+    /* Botões estilizados com tom azul néon */
+    .stButton button {
+        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+    
+    .stButton button:hover {
+        background: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%);
+        border: none;
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("⚡ OmniFlux")
 st.caption("O teu sistema operativo líquido e dinâmico.")
 
-# --- MODO DEMO PARA O VÍDEO (Acesso Rápido) ---
+# --- PAINEL DE DEMONSTRAÇÃO RÁPIDA ---
 st.markdown("### 🎬 Painel de Demonstração Rápida")
 col_d1, col_d2, col_d3 = st.columns(3)
 with col_d1:
