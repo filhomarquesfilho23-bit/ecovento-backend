@@ -2,21 +2,13 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 from datetime import datetime
-import streamlit.components.v1 as components
 
 # Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux Voice Assistant",
+    page_title="OmniFlux Ultimate",
     page_icon="⚡",
     layout="centered"
 )
-
-# --- CAPTURAR VOZ VIA URL PARAMS ---
-query_params = st.query_params
-intencao_voz = ""
-if "intencao" in query_params:
-    intencao_voz = query_params["intencao"]
-    st.query_params.clear()
 
 # --- BASE DE DADOS PERSISTENTE (SQLite) ---
 def init_db():
@@ -42,7 +34,7 @@ def obter_notas():
     conn.close()
     return df
 
-# --- ESTILO AZUL FUTURISTA & OCULTAR INPUT MANUAL ---
+# --- ESTILO AZUL FUTURISTA ---
 st.markdown("""
     <style>
     .stApp {
@@ -53,10 +45,7 @@ st.markdown("""
         color: #38bdf8 !important;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    .stTextInput {
-        display: none !important;
-    }
-    .stTextArea textarea {
+    .stTextInput input, .stTextArea textarea {
         background-color: #1e293b !important;
         color: #ffffff !important;
         border: 1px solid #38bdf8 !important;
@@ -69,7 +58,7 @@ st.markdown("""
         border-radius: 8px;
         font-weight: bold;
         width: 100%;
-        padding: 0.5rem 1rem;
+        padding: 0.6rem 1rem;
         box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
     }
     .stButton button:hover {
@@ -80,105 +69,58 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚡ OmniFlux Assistant")
-st.caption("Sistema Operativo Líquido acionado exclusivamente por Voz.")
+st.title("⚡ OmniFlux Instantâneo")
+st.caption("Sistema Operativo Líquido de Resposta Imediata.")
 
-# --- COMPONENTE DE VOZ NATIVO ---
-st.markdown("### 🎙️ Comando por Voz Inteligente")
-voice_component = """
-<div style="text-align: center; margin-bottom: 20px;">
-    <button onclick="startListening()" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 30px; padding: 15px 30px; font-weight: bold; font-size: 18px; box-shadow: 0 6px 20px rgba(244, 63, 94, 0.5); cursor: pointer; width: 100%;">
-        🎤 Tocar para Falar
-    </button>
-    <p id="status" style="color: #38bdf8; font-size: 14px; margin-top: 10px;">Toque no botão e diga o que pretende fazer...</p>
-</div>
-
-<script>
-function startListening() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("O seu browser não suporta reconhecimento de voz direto.");
-        return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'pt-PT';
-    recognition.interimResults = false;
-    
-    document.getElementById("status").innerText = "A escutar a sua voz...";
-    
-    recognition.onresult = function(event) {
-        const speechToText = event.results[0][0].transcript;
-        document.getElementById("status").innerText = "Comando: " + speechToText + " (A materializar...)";
-        
-        setTimeout(() => {
-            const baseUrl = window.parent.location.origin + window.parent.location.pathname;
-            window.parent.location.href = baseUrl + '?intencao=' + encodeURIComponent(speechToText);
-        }, 300);
-    };
-    
-    recognition.onerror = function(event) {
-        document.getElementById("status").innerText = "Erro ao escutar. Tente novamente.";
-    };
-    
-    recognition.start();
-}
-</script>
-"""
-components.html(voice_component, height=120)
-
-# Gerir o estado da intenção com base exclusivamente na voz
+# Gerir o estado da intenção atual
 if "intencao_atual" not in st.session_state:
-    st.session_state.intencao_atual = ""
+    st.session_state.intencao_atual = "geral"
 
-if intencao_voz:
-    st.session_state.intencao_atual = intencao_voz
+# --- PAINEL DE CONTROLO POR TOQUE RÁPIDO (Substituto fiável para telemóvel) ---
+st.markdown("### 🎙️ Seleção de Intenção Instantânea")
+st.caption("Toca num botão para materializar a resposta imediatamente em baixo:")
 
-def motor_ia_semantico(texto):
-    t = texto.lower()
-    if "finan" in t or "dinheiro" in t or "gastos" in t or "orçamento" in t or "fatura" in t:
-        return "financeiro"
-    elif any(k in t for k in ["equipa", "salario", "contrat", "colaborador"]):
-        return "recursos_humanos"
-    elif any(k in t for k in ["tarefa", "projeto", "fazer", "prioridade"]):
-        return "tarefas"
-    elif any(k in t for k in ["nota", "escrever", "ideia", "registo", "lembrar"]):
-        return "notas"
-    else:
-        return "geral"
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("💰 Analisar Finanças"):
+        st.session_state.intencao_atual = "financeiro"
+    if st.button("📋 Criar Tarefas"):
+        st.session_state.intencao_atual = "tarefas"
+with col2:
+    if st.button("👥 Gerir Equipa"):
+        st.session_state.intencao_atual = "recursos_humanos"
+    if st.button("📝 Escrever Nota"):
+        st.session_state.intencao_atual = "notas"
 
-modulo_ativo = motor_ia_semantico(st.session_state.intencao_atual) if st.session_state.intencao_atual else "geral"
-
-# Mostrar o último comando reconhecido por voz de forma elegante
-if st.session_state.intencao_atual:
-    st.info(f"🧠 **Última Intenção de Voz Detetada:** \"{st.session_state.intencao_atual}\"")
+modulo_ativo = st.session_state.intencao_atual
 
 st.markdown("---")
 
-# --- MATERIALIZAÇÃO LÍQUIDA DINÂMICA ---
+# --- MATERIALIZAÇÃO LÍQUIDA DINÂMICA (Respostas diretas em baixo) ---
 if modulo_ativo == "financeiro":
-    st.success("💧 Módulo Financeiro Materializado Instantaneamente por Voz")
+    st.success("💧 Módulo Financeiro Materializado Instantaneamente")
     st.metric("Saldo Global Ativo", "4.850,00 €", "+18.2%")
     st.bar_chart({"Jan": 1500, "Fev": 2800, "Mar": 4850})
     limite = st.slider("Ajustar Limite de Tesouraria (€)", 0, 10000, 4000)
     st.info(f"Limite otimizado: {limite} €")
 
 elif modulo_ativo == "recursos_humanos":
-    st.warning("💧 Módulo de Gestão de Talento Materializado Instantaneamente por Voz")
+    st.warning("💧 Módulo de Gestão de Talento Materializado Instantaneamente")
     cargo = st.text_input("Cargo Pretendido", value="Arquiteto de Sistemas IA")
     vencimento = st.number_input("Orçamento Mensal Bruto (€)", value=3000)
     if st.button("Simular Contrato Anual"):
         st.success(f"Custo total anual projetado para {cargo}: {vencimento * 14} € (Subsídios incluídos).")
 
 elif modulo_ativo == "tarefas":
-    st.info("💧 Módulo de Tarefas e Execução Materializado Instantaneamente por Voz")
+    st.info("💧 Módulo de Tarefas e Execução Materializado Instantaneamente")
     nova_tarefa = st.text_input("Nova Tarefa Estratégica:")
     if st.button("Guardar Tarefa"):
         st.toast("Tarefa guardada com sucesso!", icon="✅")
-    st.checkbox("Operação 100% por voz no OmniFlux", value=True)
-    st.checkbox("Validar transições líquidas no telemóvel", value=True)
+    st.checkbox("Operação fluida no OmniFlux", value=True)
+    st.checkbox("Validar transições no telemóvel", value=True)
 
 elif modulo_ativo == "notas":
-    st.success("💧 Módulo de Memória Persistente Materializado Instantaneamente por Voz")
+    st.success("💧 Módulo de Memória Persistente Materializado Instantaneamente")
     texto_nota = st.text_area("Regista o teu pensamento:", placeholder="Escreve aqui a tua ideia...")
     if st.button("Salvar na Base de Dados Global"):
         if texto_nota.strip():
@@ -196,7 +138,7 @@ elif modulo_ativo == "notas":
         st.write("Ainda não existem notas guardadas.")
 
 else:
-    st.info("💡 **OmniFlux Pronto:** Toca no botão vermelho de voz acima e dita a tua ordem (ex: *'analisar finanças'* ou *'escrever nota'*) para materializar a ferramenta ideal na hora, sem precisar de escrever nada!")
+    st.info("💡 **OmniFlux Pronto:** Toca num dos botões em cima para ver a resposta e os gráficos a aparecerem instantaneamente em baixo no ecrã do telemóvel!")
 
 st.markdown("---")
-st.caption("OmniFlux Voice Assistant • 100% Autónomo por Voz ⚡")
+st.caption("OmniFlux Ultimate • Resposta Instantânea ⚡")
