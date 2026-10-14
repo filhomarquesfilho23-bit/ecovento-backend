@@ -1,37 +1,57 @@
 import streamlit as st
+import sqlite3
 import pandas as pd
+from datetime import datetime
+import streamlit.components.v1 as components
 
-# Configuração para Telemóvel / Layout Responsivo
+# Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux - Sistema Líquido",
+    page_title="OmniFlux Voice Ultimate",
     page_icon="⚡",
     layout="centered"
 )
 
-# --- ESTILO AZUL FUTURISTA (CUSTOM CSS) ---
+# --- BASE DE DADOS PERSISTENTE (SQLite) ---
+def init_db():
+    conn = sqlite3.connect('omniflux.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS notas (id INTEGER PRIMARY KEY AUTOINCREMENT, texto TEXT, data TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS tarefas (id INTEGER PRIMARY KEY AUTOINCREMENT, tarefa TEXT, concluida INTEGER, data TEXT)''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def guardar_nota(texto):
+    conn = sqlite3.connect('omniflux.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO notas (texto, data) VALUES (?, ?)", (texto, datetime.now().strftime("%Y-%m-%d %H:%M")))
+    conn.commit()
+    conn.close()
+
+def obter_notas():
+    conn = sqlite3.connect('omniflux.db')
+    df = pd.read_sql_query("SELECT * FROM notas ORDER BY id DESC", conn)
+    conn.close()
+    return df
+
+# --- ESTILO AZUL FUTURISTA & VOZ (CUSTOM CSS) ---
 st.markdown("""
     <style>
-    /* Fundo geral da aplicação em tons de azul escuro / tecnológico */
     .stApp {
         background-color: #0b1329;
         color: #e2e8f0;
     }
-    
-    /* Estilização dos títulos e textos */
     h1, h2, h3 {
         color: #38bdf8 !important;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    
-    /* Caixas de input e texto */
     .stTextInput input, .stTextArea textarea {
         background-color: #1e293b !important;
         color: #ffffff !important;
         border: 1px solid #38bdf8 !important;
         border-radius: 8px;
     }
-    
-    /* Botões estilizados com tom azul néon */
     .stButton button {
         background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
         color: white;
@@ -42,7 +62,6 @@ st.markdown("""
         padding: 0.5rem 1rem;
         box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
     }
-    
     .stButton button:hover {
         background: linear-gradient(135deg, #38bdf8 0%, #1d4ed8 100%);
         border: none;
@@ -51,93 +70,130 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚡ OmniFlux")
-st.caption("O teu sistema operativo líquido e dinâmico.")
+st.title("⚡ OmniFlux Voice")
+st.caption("Sistema Operativo Líquido com Comandos por Voz e IA.")
 
-# --- PAINEL DE DEMONSTRAÇÃO RÁPIDA ---
-st.markdown("### 🎬 Painel de Demonstração Rápida")
-col_d1, col_d2, col_d3 = st.columns(3)
-with col_d1:
-    btn_fin = st.button("💰 Finanças")
-with col_d2:
-    btn_rh = st.button("👥 Equipa")
-with col_d3:
-    btn_tarefas = st.button("📋 Tarefas")
+# --- COMPONENTE DE VOZ NATIVO (HTML/JS) ---
+st.markdown("### 🎙️ Comando por Voz Inteligente")
+voice_component = """
+<div style="text-align: center; margin-bottom: 15px;">
+    <button onclick="startListening()" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 25px; padding: 12px 24px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); cursor: pointer; width: 100%;">
+        🎤 Tocar para Falar com o OmniFlux
+    </button>
+    <p id="status" style="color: #38bdf8; font-size: 13px; margin-top: 8px;">Toque no botão e diga o que pretende...</p>
+</div>
 
-# Definir intenção por clique ou por texto livre
+<script>
+function startListening() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("O seu browser não suporta reconhecimento de voz direto. Use o campo de texto abaixo.");
+        return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pt-PT';
+    recognition.interimResults = false;
+    
+    document.getElementById("status").innerText = "A escutar a sua voz...";
+    
+    recognition.onresult = function(event) {
+        const speechToText = event.results[0][0].transcript;
+        document.getElementById("status").innerText = "Comando detetado: " + speechToText;
+        
+        // Enviar o texto para o Streamlit através de URL parameter ou reloads
+        const streamlitInput = window.parent.document.querySelector('input[aria-label*="O que desejas realizar hoje?"]');
+        if (streamlitInput) {
+            streamlitInput.value = speechToText;
+            streamlitInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    };
+    
+    recognition.onerror = function(event) {
+        document.getElementById("status").innerText = "Erro ao escutar. Tente novamente.";
+    };
+    
+    recognition.start();
+}
+</script>
+"""
+components.html(voice_component, height=100)
+
+# --- CAMPO DE INTENÇÃO ABSOLUTA ---
 if "intencao_atual" not in st.session_state:
     st.session_state.intencao_atual = ""
 
-if btn_fin:
-    st.session_state.intencao_atual = "analisar finanças"
-elif btn_rh:
-    st.session_state.intencao_atual = "gerir equipa"
-elif btn_tarefas:
-    st.session_state.intencao_atual = "criar tarefas"
-
-# Campo de Intenção Absoluta (Texto livre)
-st.markdown("---")
-st.markdown("### 🧠 Escrever Intenção")
+st.markdown("### 🧠 Campo de Intenção Global")
 intencao_utilizador = st.text_input(
-    "Ou escreve o que queres fazer:",
+    "O que desejas realizar hoje?",
     value=st.session_state.intencao_atual,
-    placeholder="Ex: analisar finanças, gerir equipa..."
+    placeholder="Ex: analisar finanças, escrever uma nota, gerir equipa..."
 )
 
-# Atualizar estado global
 st.session_state.intencao_atual = intencao_utilizador
 
-def processar_intencao(texto):
-    """Motor semântico do OmniFlux."""
-    texto = texto.lower()
-    if "finan" in texto or "despesa" in texto or "fatura" in texto or "dinheiro" in texto:
+def motor_ia_semantico(texto):
+    """Motor de intenção inteligente."""
+    t = texto.lower()
+    if any(k in t for k in ["finan", "dinheiro", "gastos", "orçamento", "fatura"]):
         return "financeiro"
-    elif "equipa" in texto or "contrat" in texto or "salario" in texto:
+    elif any(k in t for k in ["equipa", "salario", "contrat", "colaborador"]):
         return "recursos_humanos"
-    elif "tarefa" in texto or "projeto" in texto or "fazer" in texto:
+    elif any(k in t for k in ["tarefa", "projeto", "fazer", "prioridade"]):
         return "tarefas"
+    elif any(k in t for k in ["nota", "escrever", "ideia", "registo", "lembrar"]):
+        return "notas"
     else:
         return "geral"
 
-modulo_ativo = processar_intencao(intencao_utilizador) if intencao_utilizador else "geral"
+modulo_ativo = motor_ia_semantico(intencao_utilizador) if intencao_utilizador else "geral"
 
 st.markdown("---")
 
-# Materialização líquida da interface baseada na intenção
+# --- MATERIALIZAÇÃO LÍQUIDA DINÂMICA ---
 if modulo_ativo == "financeiro":
-    st.success("💧 Módulo Financeiro Materializado Instantaneamente")
-    st.metric("Total Disponível", "2.450,00 €", "+12.5%")
-    
-    st.markdown("**Evolução Mensal (€):**")
-    st.bar_chart({"Jan": 1200, "Fev": 1800, "Mar": 2450})
-    
-    orcamento = st.slider("Simular Limite de Gastos (€)", 0, 5000, 2000)
-    st.info(f"Orçamento configurado para: {orcamento} €")
+    st.success("💧 Módulo Financeiro Materializado por Voz / IA")
+    st.metric("Saldo Global Ativo", "4.850,00 €", "+18.2%")
+    st.bar_chart({"Jan": 1500, "Fev": 2800, "Mar": 4850})
+    limite = st.slider("Ajustar Limite de Tesouraria (€)", 0, 10000, 4000)
+    st.info(f"Limite otimizado: {limite} €")
 
 elif modulo_ativo == "recursos_humanos":
-    st.warning("💧 Módulo de Gestão de Equipa Materializado Instantaneamente")
-    cargo = st.text_input("Função do Colaborador", value="Especialista IA")
-    salario_base = st.number_input("Remuneração Base Mensal (€)", value=2200)
-    
-    if st.button("Gerar Proposta Contratual"):
-        st.success(f"Proposta gerada para {cargo} com custo anual estimado de {salario_base * 14} €.")
+    st.warning("💧 Módulo de Gestão de Talento Materializado por Voz / IA")
+    cargo = st.text_input("Cargo Pretendido", value="Arquiteto de Sistemas IA")
+    vencimento = st.number_input("Orçamento Mensal Bruto (€)", value=3000)
+    if st.button("Simular Contrato Anual"):
+        st.success(f"Custo total anual projetado para {cargo}: {vencimento * 14} € (Subsídios incluídos).")
 
 elif modulo_ativo == "tarefas":
-    st.info("💧 Módulo de Execução de Tarefas Materializado Instantaneamente")
-    nova_tarefa = st.text_input("Adicionar nova prioridade:")
-    if st.button("Registar Tarefa"):
-        st.toast(f"Tarefa guardada: {nova_tarefa}", icon="✅")
+    st.info("💧 Módulo de Tarefas e Execução Materializado por Voz / IA")
+    nova_tarefa = st.text_input("Nova Tarefa Estratégica:")
+    if st.button("Guardar Tarefa"):
+        st.toast("Tarefa guardada com sucesso!", icon="✅")
+    st.checkbox("Integrar comandos por voz no OmniFlux", value=True)
+    st.checkbox("Validar transições líquidas no telemóvel", value=True)
+
+elif modulo_ativo == "notas":
+    st.success("💧 Módulo de Memória Persistente Materializado por Voz / IA")
+    texto_nota = st.text_area("Regista o teu pensamento:", placeholder="Escreve aqui a tua ideia...")
+    if st.button("Salvar na Base de Dados Global"):
+        if texto_nota.strip():
+            guardar_nota(texto_nota)
+            st.success("Nota gravada com sucesso na memória persistente!")
+        else:
+            st.warning("Escreve algo antes de salvar.")
     
-    st.markdown("**Tarefas Ativas:**")
-    st.checkbox("Finalizar protótipo do OmniFlux", value=True)
-    st.checkbox("Testar transição fluida no telemóvel", value=True)
+    st.markdown("### 📚 Histórico de Notas Guardadas")
+    df_notas = obter_notas()
+    if not df_notas.empty:
+        for index, row in df_notas.iterrows():
+            st.info(f"[{row['data']}] {row['texto']}")
+    else:
+        st.write("Ainda não existem notas guardadas.")
 
 else:
-    st.info("💡 **OmniFlux Pronto:** Usa os botões de demonstração em cima ou escreve uma intenção para transformar o ecrã na hora!")
-    
-    st.markdown("### 📝 Bloco de Notas Líquido")
-    st.text_area("Regista pensamentos rápidos:", height=120, placeholder="Escreve aqui...")
+    st.info("💡 **OmniFlux Ativo:** Toca no botão vermelho de voz acima e dita uma ordem (ex: *'analisar finanças'* ou *'escrever nota'*) para materializar a ferramenta ideal na hora.")
+    st.markdown("### 📝 Espaço de Trabalho Fluido")
+    st.text_area("Rascunho Rápido:", height=100, placeholder="Escreve notas rápidas...")
 
-# Rodapé minimalista
 st.markdown("---")
-st.caption("OmniFlux Core • Sistema Operativo Líquido v1.0")
+st.caption("OmniFlux Voice Ultimate • Voz + IA Semântica + SQLite ⚡")
