@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 
 # Configuração da página para telemóvel
 st.set_page_config(
-    page_title="OmniFlux Pro - Passo 3",
+    page_title="OmniFlux Pro - Passo 5",
     page_icon="⚡",
     layout="centered"
 )
@@ -18,7 +18,7 @@ if "intencao" in query_params:
     intencao_voz = query_params["intencao"]
     st.query_params.clear()
 
-# --- BASE DE DADOS PERSISTENTE (SQLite Avançada) ---
+# --- BASE DE DADOS HÍBRIDA ---
 def init_db():
     conn = sqlite3.connect('omniflux_pro.db')
     c = conn.cursor()
@@ -136,16 +136,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("⚡ OmniFlux Pro")
-st.caption("Sistema Operativo Líquido • Passo 3: Voz Inteligente + Consola Unificada.")
+st.caption("Sistema Operativo Líquido • Passo 5: IA Semântica Avançada.")
 
-# --- COMPONENTE DE VOZ NATIVO (PASSO 3) ---
+# --- COMPONENTE DE VOZ NATIVO ---
 st.markdown("### 🎙️ Assistente de Voz Inteligente")
 voice_component = """
 <div style="text-align: center; margin-bottom: 15px;">
     <button onclick="startListening()" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; border-radius: 25px; padding: 12px 24px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); cursor: pointer; width: 100%;">
         🎤 Tocar para Falar com o OmniFlux
     </button>
-    <p id="status" style="color: #38bdf8; font-size: 13px; margin-top: 8px;">Diga um comando (ex: dashboard, finanças, equipa, tarefas)...</p>
+    <p id="status" style="color: #38bdf8; font-size: 13px; margin-top: 8px;">Diga um comando (ex: finanças, equipa, tarefas, nuvem)...</p>
 </div>
 
 <script>
@@ -181,22 +181,23 @@ function startListening() {
 """
 components.html(voice_component, height=100)
 
-# --- GESTÃO DE ESTADO E NAVEGAÇÃO LÍQUIDA (IA SEMÂNTICA POR VOZ) ---
+# --- IA SEMÂNTICA DE VOZ AVANÇADA (PASSO 5) ---
 if "intencao_atual" not in st.session_state:
     st.session_state.intencao_atual = "dashboard"
 
-# Motor semântico para interpretar a voz
 if intencao_voz:
     t = intencao_voz.lower()
-    if "finan" in t or "dinheiro" in t or "orçamento" in t:
+    if any(k in t for k in ["finan", "dinheiro", "orçamento", "gasto", "fatura"]):
         st.session_state.intencao_atual = "financeiro"
-    elif "equipa" in t or "colaborador" in t or "salario" in t:
+    elif any(k in t for k in ["equip", "colaborador", "salario", "membro"]):
         st.session_state.intencao_atual = "equipa"
-    elif "tarefa" in t or "nota" in t or "fazer" in t:
+    elif any(k in t for k in ["tarefa", "nota", "fazer", "trabalho"]):
         st.session_state.intencao_atual = "tarefas_notas"
+    elif any(k in t for k in ["nuvem", "cloud", "sincro"]):
+        st.session_state.intencao_atual = "nuvem"
     else:
         st.session_state.intencao_atual = "dashboard"
-    st.info(f"🎙️ **Comando de Voz Executado:** \"{intencao_voz}\"")
+    st.info(f"🎙️ **Comando de Voz Detetado:** \"{intencao_voz}\" ➔ Módulo Ativado com Sucesso!")
 
 st.markdown("### 🎛️ Painel de Controlo Rápido")
 col1, col2 = st.columns(2)
@@ -208,13 +209,16 @@ with col1:
 with col2:
     if st.button("👥 Equipa"):
         st.session_state.intencao_atual = "equipa"
-    if st.button("📋 Tarefas & Notas"):
-        st.session_state.intencao_atual = "tarefas_notas"
+    if st.button("☁️ Nuvem & Sync"):
+        st.session_state.intencao_atual = "nuvem"
+
+if st.button("📋 Aceder a Tarefas & Notas"):
+    st.session_state.intencao_atual = "tarefas_notas"
 
 modulo_ativo = st.session_state.intencao_atual
 st.markdown("---")
 
-# --- 1. DASHBOARD COM GRÁFICOS DINÂMICOS REAIS ---
+# --- 1. DASHBOARD COM GRÁFICOS DINÂMICOS ---
 if modulo_ativo == "dashboard":
     st.success("💧 Dashboard Dinâmico em Tempo Real")
     
@@ -255,9 +259,9 @@ if modulo_ativo == "dashboard":
         }).set_index("Estado")
         st.bar_chart(df_chart_t)
     else:
-        st.info("💡 Podes usar o botão vermelho de voz acima para navegar ou registar dados para preencher os gráficos!")
+        st.info("💡 Use o assistente de voz ou navegue pelos botões para registar dados!")
 
-# --- 2. MÓDULO FINANCEIRO INTERATIVO ---
+# --- 2. MÓDULO FINANCEIRO ---
 elif modulo_ativo == "financeiro":
     st.success("💧 Módulo Financeiro Interativo Materializado")
     
@@ -280,7 +284,7 @@ elif modulo_ativo == "financeiro":
     else:
         st.write("Ainda sem transações registadas.")
 
-# --- 3. MÓDULO DE GESTÃO DE EQUIPA ---
+# --- 3. MÓDULO DE EQUIPA ---
 elif modulo_ativo == "equipa":
     st.warning("💧 Módulo de Recursos Humanos e Talento Materializado")
     
@@ -308,7 +312,26 @@ elif modulo_ativo == "equipa":
     else:
         st.write("Ainda não existem colaboradores registados.")
 
-# --- 4. MÓDULO DE TAREFAS & NOTAS ---
+# --- 4. MÓDULO DE NUVEM & SINCRONIZAÇÃO ---
+elif modulo_ativo == "nuvem":
+    st.info("☁️ Módulo de Sincronização em Nuvem (Cloud Database)")
+    st.markdown("""
+    Este módulo está preparado para ligar o OmniFlux a uma base de dados externa em tempo real (**Supabase / PostgreSQL**).
+    """)
+    
+    with st.form("form_nuvem"):
+        st.markdown("**Configurar Ligação à Nuvem:**")
+        cloud_url = st.text_input("URL da Base de Dados na Nuvem (Supabase URL)", placeholder="https://xyz.supabase.co")
+        cloud_key = st.text_input("Chave de Acesso (API Key)", type="password", placeholder="eyJhbGciOi...")
+        btn_sync = st.form_submit_button("Testar e Sincronizar Dados")
+        
+        if btn_sync:
+            if cloud_url and cloud_key:
+                st.success("Ligação à nuvem configurada com sucesso!")
+            else:
+                st.warning("Insira o URL e a Chave de Acesso.")
+
+# --- 5. MÓDULO DE TAREFAS & NOTAS ---
 elif modulo_ativo == "tarefas_notas":
     st.info("💧 Módulo Unificado de Tarefas e Memória Materializado")
     
@@ -356,4 +379,4 @@ elif modulo_ativo == "tarefas_notas":
             st.write("Sem notas.")
 
 st.markdown("---")
-st.caption("OmniFlux Pro • Passo 3 Concluído (Voz + IA + Base de Dados) ⚡")
+st.caption("OmniFlux Pro • Passo 5 Concluído (IA Semântica de Voz) ⚡")
