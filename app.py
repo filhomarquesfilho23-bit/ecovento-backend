@@ -181,12 +181,51 @@ with tab1:
 
 with tab2:
   st.subheader("Criar Nova Tarefa ou Micro-Hábito")
+
+  # --- GERADOR AUTOMÁTICO DE MICRO-HÁBITOS POR IA ---
+  st.markdown("### 🪄 Gerador Inteligente por IA")
+  st.write(
+      "Deixe a IA criar automaticamente micro-hábitos ajustados ao seu estado"
+      f" atual (Energia: {energy_level}/5 | Estado: {mood})."
+  )
+
+  if st.button("✨ Gerar Micro-Hábitos Automáticos"):
+    # Lógica de sugestões dinâmicas com base no nível de energia atual
+    if energy_level <= 2:
+      sugestoes = [
+          ("Fazer respiração profunda durante 3 minutos", "Baixa"),
+          ("Organizar apenas a secretária ou ambiente de trabalho", "Baixa"),
+          ("Beber um copo de água e fazer uma pausa visual", "Baixa"),
+      ]
+    elif energy_level == 3:
+      sugestoes = [
+          ("Rever pendentes e limpar caixa de e-mails", "Média"),
+          ("Fazer uma caminhada ligeira de 15 minutos", "Média"),
+          ("Planear as prioridades principais do dia seguinte", "Média"),
+      ]
+    else:
+      sugestoes = [
+          ("Esboçar o projeto estratégico principal", "Alta"),
+          ("Avançar com a tarefa criativa mais difícil", "Alta"),
+          ("Conduzir reunião de planeamento de alto impacto", "Alta"),
+      ]
+
+    for titulo_sug, energia_sug in sugestoes:
+      add_task(titulo_sug, energia_sug)
+
+    st.success(
+        "✨ 3 Micro-hábitos gerados e adicionados com sucesso ao seu fluxo!"
+    )
+    st.rerun()
+
+  st.markdown("---")
+
   with st.form("task_form"):
-    new_task_title = st.text_input("Título da Tarefa")
+    new_task_title = st.text_input("Título da Tarefa Manual")
     new_task_energy = st.selectbox(
         "Nível de Energia Necessário", ["Baixa", "Média", "Alta"]
     )
-    submit_task = st.form_submit_button("Adicionar Tarefa")
+    submit_task = st.form_submit_button("Adicionar Tarefa Manual")
 
     if submit_task and new_task_title:
       add_task(new_task_title, new_task_energy)
