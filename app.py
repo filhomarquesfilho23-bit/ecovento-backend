@@ -1,16 +1,20 @@
-import sqlite3
 from datetime import datetime
+import numpy as np
+import pandas as pd
+import sqlite3
 import streamlit as st
 
 # Configuração da página
 st.set_page_config(
-    page_title="Micro-Habit Mesh", page_icon="⚡", layout="wide"
+    page_title="Micro-Habit Mesh - Otimizador de Rotina",
+    page_icon="⚡",
+    layout="wide",
 )
 
 
 # Inicializar Base de Dados SQLite
 def init_db():
-  conn = sqlite3.connect("micro_habit_mesh.db")
+  conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
   c = conn.cursor()
   c.execute("""
         CREATE TABLE IF NOT EXISTS energy_logs (
@@ -37,7 +41,7 @@ init_db()
 
 # Funções de base de dados
 def log_energy(level, mood):
-  conn = sqlite3.connect("micro_habit_mesh.db")
+  conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
   c = conn.cursor()
   c.execute(
       "INSERT INTO energy_logs (timestamp, energy_level, mood) VALUES (?, ?,"
@@ -49,7 +53,7 @@ def log_energy(level, mood):
 
 
 def add_task(title, energy_required):
-  conn = sqlite3.connect("micro_habit_mesh.db")
+  conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
   c = conn.cursor()
   c.execute(
       "INSERT INTO tasks (title, energy_required, status) VALUES (?, ?, ?)",
@@ -60,7 +64,7 @@ def add_task(title, energy_required):
 
 
 def get_tasks():
-  conn = sqlite3.connect("micro_habit_mesh.db")
+  conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
   c = conn.cursor()
   c.execute("SELECT id, title, energy_required, status FROM tasks")
   rows = c.fetchall()
@@ -69,14 +73,14 @@ def get_tasks():
 
 
 def update_task_status(task_id, status):
-  conn = sqlite3.connect("micro_habit_mesh.db")
+  conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
   c = conn.cursor()
   c.execute("UPDATE tasks SET status = ? WHERE id = ?", (status, task_id))
   conn.commit()
   conn.close()
 
 
-# Interface Gráfica (Streamlit)
+# Interface Principal (Streamlit)
 st.title("⚡ Micro-Habit Mesh")
 st.markdown(
     "### O seu Otimizador Dinâmico de Rotina e Energia Baseado em IA"
@@ -95,13 +99,35 @@ if st.sidebar.button("Registar Estado de Energia"):
   log_energy(energy_level, mood)
   st.sidebar.success("Estado registado com sucesso!")
 
-# Layout Principal em Separadores
+# Layout em Separadores
 tab1, tab2, tab3 = st.tabs(
     ["📊 Matriz Dinâmica", "➕ Adicionar Tarefas", "📈 Histórico de Energia"]
 )
 
 with tab1:
   st.subheader("O seu Fluxo de Tarefas Adaptativo")
+
+  # --- MOTOR DE RECOMENDAÇÃO INTELIGENTE POR IA ---
+  st.markdown("### 🤖 Diagnóstico e Recomendação de IA")
+  if energy_level <= 2:
+    st.warning(
+        "⚠️ **Alerta de Sobrecarga Preventiva:** A sua energia está baixa"
+        f" ({energy_level}/5) e o seu estado é '{mood}'. A IA sugere pausar"
+        " tarefas complexas, fazer uma caminhada curta de 10 minutos ou focar-se"
+        " apenas em micro-hábitos de exigência **Baixa**."
+    )
+  elif energy_level == 3:
+    st.info(
+        "⚖️ **Modo de Ritmo Constante:** Energia moderada. Ideal para tarefas"
+        " de exigência **Média** ou para organizar pendentes sem pressas."
+    )
+  else:
+    st.success(
+        "🚀 **Pico de Alta Performance:** Energia no topo! O momento ideal para"
+        " avançar com projetos complexos, criativos ou de exigência **Alta**."
+    )
+
+  st.markdown("---")
   tasks = get_tasks()
 
   if not tasks:
@@ -109,23 +135,7 @@ with tab1:
         "Ainda não tem tarefas criadas. Adicione tarefas no separador ao lado!"
     )
   else:
-    # Lógica inteligente de recomendação baseada na energia atual
-    st.write(
-        f"**Estado atual detetado:** Nível de Energia {energy_level}/5 ({mood})"
-    )
-
-    if energy_level <= 2:
-      st.warning(
-          "⚠️ Detetámos baixa energia. O sistema recomenda focar-se apenas em"
-          " micro-tarefas de baixa exigência hoje."
-      )
-    elif energy_level >= 4:
-      st.success(
-          "🚀 Energia alta detetada! Excelente momento para avançar com tarefas"
-          " complexas e criativas."
-      )
-
-    st.markdown("---")
+    st.write("#### Lista de Tarefas Atuais")
     for task_id, title, req_energy, status in tasks:
       col1, col2, col3 = st.columns([3, 2, 2])
       with col1:
@@ -156,9 +166,7 @@ with tab2:
 
 with tab3:
   st.subheader("Registo de Padrões e Histórico")
-  conn = sqlite3.connect("micro_habit_mesh.db")
-  import pandas as pd
-
+  conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
   df_energy = pd.read_sql_query(
       "SELECT timestamp, energy_level, mood FROM energy_logs", conn
   )
