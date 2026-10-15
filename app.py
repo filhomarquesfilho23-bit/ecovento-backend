@@ -80,6 +80,14 @@ def update_task_status(task_id, status):
   conn.close()
 
 
+def clear_completed_tasks():
+  conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
+  c = conn.cursor()
+  c.execute("DELETE FROM tasks WHERE status = 'Concluído'")
+  conn.commit()
+  conn.close()
+
+
 # Interface Principal (Streamlit)
 st.title("⚡ Micro-Habit Mesh")
 st.markdown(
@@ -133,12 +141,20 @@ with tab1:
   st.markdown("---")
 
   # --- FILTRO INTELIGENTE DE TAREFAS ---
-  st.write("#### Filtrar Tarefas")
-  filtro_modo = st.radio(
-      "Mostrar:",
-      ["Todas as tarefas", "✨ Apenas recomendadas para o meu estado atual"],
-      horizontal=True,
-  )
+  col_f1, col_f2 = st.columns([3, 1])
+  with col_f1:
+    st.write("#### Filtrar Tarefas")
+    filtro_modo = st.radio(
+        "Mostrar:",
+        ["Todas as tarefas", "✨ Apenas recomendadas para o meu estado atual"],
+        horizontal=True,
+    )
+  with col_f2:
+    st.write("#### Ações")
+    if st.button("🗑️ Limpar Concluídas"):
+      clear_completed_tasks()
+      st.success("Tarefas concluídas removidas!")
+      st.rerun()
 
   tasks = get_tasks()
 
@@ -190,7 +206,6 @@ with tab2:
   )
 
   if st.button("✨ Gerar Micro-Hábitos Automáticos"):
-    # Lógica de sugestões dinâmicas com base no nível de energia atual
     if energy_level <= 2:
       sugestoes = [
           ("Fazer respiração profunda durante 3 minutos", "Baixa"),
@@ -262,6 +277,10 @@ with tab3:
   else:
     st.write("#### Evolução do Nível de Energia")
     st.line_chart(df_energy.set_index("timestamp")["energy_level"])
+
+    st.write("#### Distribuição de Estados de Espírito")
+    mood_counts = df_energy["mood"].value_counts()
+    st.bar_chart(mood_counts)
 
     st.write("#### Histórico de Registos")
     st.dataframe(df_energy, use_container_width=True)
