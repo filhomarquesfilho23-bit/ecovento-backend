@@ -107,27 +107,39 @@ tab1, tab2, tab3 = st.tabs(
 with tab1:
   st.subheader("O seu Fluxo de Tarefas Adaptativo")
 
-  # --- MOTOR DE RECOMENDAÇÃO INTELIGENTE POR IA ---
+  # --- DIAGNÓSTICO E RECOMENDAÇÃO DE IA ---
   st.markdown("### 🤖 Diagnóstico e Recomendação de IA")
   if energy_level <= 2:
     st.warning(
         "⚠️ **Alerta de Sobrecarga Preventiva:** A sua energia está baixa"
         f" ({energy_level}/5) e o seu estado é '{mood}'. A IA sugere pausar"
-        " tarefas complexas, fazer uma caminhada curta de 10 minutos ou focar-se"
-        " apenas em micro-hábitos de exigência **Baixa**."
+        " tarefas complexas e focar-se apenas em micro-hábitos de exigência"
+        " **Baixa**."
     )
+    recommended_energy = "Baixa"
   elif energy_level == 3:
     st.info(
         "⚖️ **Modo de Ritmo Constante:** Energia moderada. Ideal para tarefas"
         " de exigência **Média** ou para organizar pendentes sem pressas."
     )
+    recommended_energy = "Média"
   else:
     st.success(
         "🚀 **Pico de Alta Performance:** Energia no topo! O momento ideal para"
-        " avançar com projetos complexos, criativos ou de exigência **Alta**."
+        " avançar com projetos complexos ou de exigência **Alta**."
     )
+    recommended_energy = "Alta"
 
   st.markdown("---")
+
+  # --- FILTRO INTELIGENTE DE TAREFAS ---
+  st.write("#### Filtrar Tarefas")
+  filtro_modo = st.radio(
+      "Mostrar:",
+      ["Todas as tarefas", "✨ Apenas recomendadas para o meu estado atual"],
+      horizontal=True,
+  )
+
   tasks = get_tasks()
 
   if not tasks:
@@ -135,20 +147,38 @@ with tab1:
         "Ainda não tem tarefas criadas. Adicione tarefas no separador ao lado!"
     )
   else:
-    st.write("#### Lista de Tarefas Atuais")
-    for task_id, title, req_energy, status in tasks:
-      col1, col2, col3 = st.columns([3, 2, 2])
-      with col1:
-        st.write(f"**{title}**")
-      with col2:
-        st.write(f"Exigência: {req_energy}")
-      with col3:
-        if status == "Pendente":
-          if st.button("Concluir", key=f"done_{task_id}"):
-            update_task_status(task_id, "Concluído")
-            st.rerun()
-        else:
-          st.markdown("✅ Concluído")
+    # Aplicar o filtro inteligente se selecionado
+    if "Apenas recomendadas" in filtro_modo:
+      tasks_filtradas = [
+          t for t in tasks if t[2].lower() == recommended_energy.lower()
+      ]
+      st.caption(
+          f"A mostrar apenas tarefas compatíveis com o nível recomendado:"
+          f" **{recommended_energy}**"
+      )
+    else:
+      tasks_filtradas = tasks
+
+    if not tasks_filtradas:
+      st.warning(
+          "Não tem tarefas pendentes correspondentes a este nível de energia"
+          " neste momento."
+      )
+    else:
+      st.markdown("---")
+      for task_id, title, req_energy, status in tasks_filtradas:
+        col1, col2, col3 = st.columns([3, 2, 2])
+        with col1:
+          st.write(f"**{title}**")
+        with col2:
+          st.write(f"Exigência: {req_energy}")
+        with col3:
+          if status == "Pendente":
+            if st.button("Concluir", key=f"done_{task_id}"):
+              update_task_status(task_id, "Concluído")
+              st.rerun()
+          else:
+            st.markdown("✅ Concluído")
 
 with tab2:
   st.subheader("Criar Nova Tarefa ou Micro-Hábito")
