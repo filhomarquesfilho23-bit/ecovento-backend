@@ -101,7 +101,7 @@ if st.sidebar.button("Registar Estado de Energia"):
 
 # Layout em Separadores
 tab1, tab2, tab3 = st.tabs(
-    ["📊 Matriz Dinâmica", "➕ Adicionar Tarefas", "📈 Histórico de Energia"]
+    ["📊 Matriz Dinâmica", "➕ Adicionar Tarefas", "📈 Histórico & Estatísticas"]
 )
 
 with tab1:
@@ -147,7 +147,6 @@ with tab1:
         "Ainda não tem tarefas criadas. Adicione tarefas no separador ao lado!"
     )
   else:
-    # Aplicar o filtro inteligente se selecionado
     if "Apenas recomendadas" in filtro_modo:
       tasks_filtradas = [
           t for t in tasks if t[2].lower() == recommended_energy.lower()
@@ -195,15 +194,35 @@ with tab2:
       st.rerun()
 
 with tab3:
-  st.subheader("Registo de Padrões e Histórico")
+  st.subheader("📈 Estatísticas e Histórico de Produtividade")
+
   conn = sqlite3.connect("micro_habit_mesh.db", check_same_thread=False)
   df_energy = pd.read_sql_query(
       "SELECT timestamp, energy_level, mood FROM energy_logs", conn
   )
+  tasks_list = get_tasks()
   conn.close()
 
+  # --- MÉTRICAS DE PRODUTIVIDADE (KPIs) ---
+  total_tasks = len(tasks_list)
+  completed_tasks = sum(1 for t in tasks_list if t[3] == "Concluído")
+  pending_tasks = total_tasks - completed_tasks
+
+  col_m1, col_m2, col_m3 = st.columns(3)
+  col_m1.metric("Total de Tarefas", total_tasks)
+  col_m2.metric("Tarefas Concluídas", completed_tasks)
+  col_m3.metric("Tarefas Pendentes", pending_tasks)
+
+  st.markdown("---")
+
   if df_energy.empty:
-    st.info("Ainda não existem registos de energia efetuados.")
+    st.info(
+        "Ainda não existem registos de energia efetuados. Registe o seu"
+        " estado na barra lateral para ver os gráficos!"
+    )
   else:
-    st.dataframe(df_energy, use_container_width=True)
+    st.write("#### Evolução do Nível de Energia")
     st.line_chart(df_energy.set_index("timestamp")["energy_level"])
+
+    st.write("#### Histórico de Registos")
+    st.dataframe(df_energy, use_container_width=True)
