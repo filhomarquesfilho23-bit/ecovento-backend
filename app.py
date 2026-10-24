@@ -2,6 +2,7 @@ import streamlit as st
 from loader import obter_system_prompt
 from auditor import auditar_codigo_local
 from openai import OpenAI
+
 st.set_page_config(page_title="Painel de Cibersegurança - Agente", page_icon="🛡️", layout="wide")
 
 st.title("Centro de Controlo e Cibersegurança IA")
